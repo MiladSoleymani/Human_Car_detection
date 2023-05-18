@@ -42,7 +42,7 @@ class BYTETrackerArgs:
     mot20: bool = False
 
 
-def video_person_process(conf: Dict) -> Tuple[np.array, np.array]:
+def video_process(conf: Dict) -> Tuple[np.array, np.array]:
     start = time.time()
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")

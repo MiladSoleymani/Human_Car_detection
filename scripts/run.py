@@ -4,24 +4,22 @@ import os
 sys.path.append(os.getcwd())
 
 from utils.process import (
-    video_car_process,
-    video_person_process,
-
+    video_process,
 )
 
 import argparse
 
 from typing import Dict
 
-def run(conf: Dict) -> None:
 
+def run(conf: Dict) -> None:
     if conf["car_person"] == "car":
         video_car_process(conf)
     elif conf["car_person"] == "person":
         video_person_process(conf)
 
-def parse_args() -> None:
 
+def parse_args() -> None:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -57,12 +55,12 @@ def parse_args() -> None:
         type=str,
         default="outdoor",
         help="the place you want to run this program.",
-        choices=['indoor', 'outdoor'],
+        choices=["indoor", "outdoor"],
     )
 
     parser.add_argument(
         "--line_start",
-        nargs='+',
+        nargs="+",
         type=float,
         default=(200, 492),
         help="starting line's point that we count cars from that line. you can input this like : --line_start 20 30",
@@ -70,12 +68,11 @@ def parse_args() -> None:
 
     parser.add_argument(
         "--line_end",
-        nargs='+',
+        nargs="+",
         type=float,
         default=(1900, 492),
         help="ending line's point that we count cars from that line. you can input this like : --line_end 20 30",
     )
-
 
     opts = parser.parse_args()
     return opts
