@@ -146,8 +146,8 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
 
                 log_info_car = {
                     "id": [],
-                    "age": [],
-                    "gender": [],
+                    "car_type": [],
+                    "speed": [],
                 }
 
             if idx == (video_info.total_frames - 1):
