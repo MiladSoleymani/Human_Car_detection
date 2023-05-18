@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from deepface import DeepFace
 
 from models.yolo import (
-    load_yolo, 
+    load_yolo,
 )
 
 from utils.utils import (
@@ -31,6 +31,7 @@ import math
 import time
 import os
 
+
 @dataclass(frozen=True)
 class BYTETrackerArgs:
     track_thresh: float = 0.25
@@ -42,14 +43,15 @@ class BYTETrackerArgs:
 
 
 def video_person_process(conf: Dict) -> Tuple[np.array, np.array]:
-
     start = time.time()
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_version"])
 
-    print(f"\npretrained {conf['yolo_version'].replace('.pt', '')} classes : {CLASS_NAMES_DICT}")
-    detection_classe = {id : CLASS_NAMES_DICT[id] for id in CLASS_ID}
+    print(
+        f"\npretrained {conf['yolo_version'].replace('.pt', '')} classes : {CLASS_NAMES_DICT}"
+    )
+    detection_classe = {id: CLASS_NAMES_DICT[id] for id in CLASS_ID}
     print(f"\nour detection classe : {detection_classe}")
 
     # create BYTETracker instance
@@ -60,27 +62,33 @@ def video_person_process(conf: Dict) -> Tuple[np.array, np.array]:
     print(video_info)
     # create frame generator
     generator = get_video_frames_generator(conf["video_target_path"])
-    # create LineCounter instance 
+    # create LineCounter instance
     LINE_START = Point(conf["line_start"][0], conf["line_start"][1])
     LINE_END = Point(conf["line_end"][0], conf["line_end"][1])
     line_counter = LineCounter(start=LINE_START, end=LINE_END)
     # create instance of BoxAnnotator and LineCounterAnnotator
-    box_annotator = BoxAnnotator(color=ColorPalette(), thickness=1, text_thickness=1, text_scale=0.4)
+    box_annotator = BoxAnnotator(
+        color=ColorPalette(), thickness=1, text_thickness=1, text_scale=0.4
+    )
     line_annotator = LineCounterAnnotator(thickness=1, text_thickness=1, text_scale=0.4)
 
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
-        
-        log_info = {
-            "id" : [],
-            "age" : [],
-            "gender" : [],
+        log_info_person = {
+            "id": [],
+            "age": [],
+            "gender": [],
+        }
+
+        log_info_car = {
+            "id": [],
+            "car_type": [],
+            "speed": [],
         }
 
         detected_tracker_id = []
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            
             if idx == 200:
                 break
 
@@ -89,89 +97,75 @@ def video_person_process(conf: Dict) -> Tuple[np.array, np.array]:
             detections = Detections(
                 xyxy=results[0].boxes.xyxy.cpu().numpy(),
                 confidence=results[0].boxes.conf.cpu().numpy(),
-                class_id=results[0].boxes.cls.cpu().numpy().astype(int)
+                class_id=results[0].boxes.cls.cpu().numpy().astype(int),
             )
             # filtering out detections with unwanted classes
-            mask = np.array([class_id in CLASS_ID for class_id in detections.class_id], dtype=bool)
+            mask = np.array(
+                [class_id in CLASS_ID for class_id in detections.class_id], dtype=bool
+            )
             detections.filter(mask=mask, inplace=True)
             # tracking detections
             tracks = byte_tracker.update(
                 output_results=detections2boxes(detections=detections),
                 img_info=frame.shape,
-                img_size=frame.shape
+                img_size=frame.shape,
             )
-            tracker_id = match_detections_with_tracks(detections=detections, tracks=tracks)
+            tracker_id = match_detections_with_tracks(
+                detections=detections, tracks=tracks
+            )
             detections.tracker_id = np.array(tracker_id)
             # filtering out detections without trackers
-            mask = np.array([tracker_id is not None for tracker_id in detections.tracker_id], dtype=bool)
+            mask = np.array(
+                [tracker_id is not None for tracker_id in detections.tracker_id],
+                dtype=bool,
+            )
             detections.filter(mask=mask, inplace=True)
-            
-            person_new_ids = []
+
             for _, _, class_id, tracker_id in detections:
-                if tracker_id not in detected_tracker_id and CLASS_NAMES_DICT[class_id] == 'person':
-                    person_new_ids.append(tracker_id)
-                    detected_tracker_id.append(tracker_id)
+                if class_id == 0 and tracker_id not in log_info_person["id"]:
+                    log_info_person["id"].append(tracker_id)
+                    log_info_person["age"].append(None)
+                    log_info_person["gender"].append(None)
 
-            if len(person_new_ids) > 0:
+                elif class_id != 0 and tracker_id not in log_info_car["id"]:
+                    log_info_car["id"].append(tracker_id)
+                    log_info_car["car_type"].append(None)
+                    log_info_car["speed"].append(None)
 
-                skip_iter = False
-                try:
-                    demographies_mtcnn = DeepFace.analyze(img_path=frame, detector_backend='mtcnn', actions=('age', 'gender'))
-                except:
-                    skip_iter = True
+            if len(log_info_person["id"]) > 5:
+                log(log_info_person, conf["log_save_path"])
 
-                if not skip_iter:
-
-                    best_detections = find_best_region(detections, demographies_mtcnn) # finding best faces' bboxes
-                    for demography in best_detections:
-                        if demography["id"] in person_new_ids:
-                            region = demography["region"]
-                            age = demography["age"]
-                            dominant_gender = demography["dominant_gender"]
-                            starting_point = (region["x"], region["y"])
-                            ending_point = (int(region["x"] + region["w"]), int(region["y"] + region["h"]))
-
-                            cv2.rectangle(frame,
-                                        starting_point,
-                                        ending_point,
-                                        (255, 255, 255), 2)
-
-                            cv2.putText(frame,
-                                        f'gender:{dominant_gender} age:{age}',
-                                        (starting_point[0], starting_point[1]-10), 
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)        
-
-                    for detection in best_detections:
-                        if detection["id"] not in log_info["id"]:
-                            log_info["id"].append(detection["id"])
-                            log_info["age"].append(detection["age"])
-                            log_info["gender"].append(detection["dominant_gender"])
-
-            if len(log_info["id"]) > 5:
-                log(log_info, conf["log_save_path"])
-
-                log_info = {
-                    "id" : [],
-                    "age" : [],
-                    "gender" : [],
+                log_info_person = {
+                    "id": [],
+                    "age": [],
+                    "gender": [],
                 }
 
-            elif idx == (video_info.total_frames - 1):
-                log(log_info, conf["log_save_path"])
-                break 
+            if len(log_info_car["id"]) > 5:
+                log(log_info_car, conf["log_save_path"])
+
+                log_info_car = {
+                    "id": [],
+                    "age": [],
+                    "gender": [],
+                }
+
+            if idx == (video_info.total_frames - 1):
+                log(log_info_car, conf["log_save_path"])
+                log(log_info_person, conf["log_save_path"])
+                break
 
             # format custom labels
             labels = [
                 f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
-                for _, confidence, class_id, tracker_id
-                in detections
+                for _, confidence, class_id, tracker_id in detections
             ]
 
             # updating line counter
             line_counter.update(detections=detections)
             # annotate and display frame
-            frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
+            frame = box_annotator.annotate(
+                frame=frame, detections=detections, labels=labels
+            )
             line_annotator.annotate(frame=frame, line_counter=line_counter)
             sink.write_frame(frame)
-
-    pass
