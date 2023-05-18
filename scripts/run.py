@@ -41,9 +41,16 @@ def parse_args() -> None:
     )
 
     parser.add_argument(
-        "--yolo_version",
+        "--yolo_object",
         type=str,
-        default="yolov8x.pt",
+        default="models/files/yolov8x.pt",
+        help="setting yolo type that want to use",
+    )
+
+    parser.add_argument(
+        "--yolo_face",
+        type=str,
+        default="models/files/yolov8n-face.pt",
         help="setting yolo type that want to use",
     )
 
