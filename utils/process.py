@@ -14,9 +14,7 @@ from dataclasses import dataclass
 
 from deepface import DeepFace
 
-from models.yolo import (
-    load_yolo,
-)
+from models.yolo import load_yolo, load_yolo_face
 
 from utils.utils import (
     detections2boxes,
@@ -46,12 +44,19 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
     start = time.time()
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
-    model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_version"])
+    model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
+    face_model, face_CLASS_NAMES_DICT, face_CLASS_ID = load_yolo_face(conf["yolo_face"])
 
     print(
-        f"\npretrained {conf['yolo_version'].replace('.pt', '')} classes : {CLASS_NAMES_DICT}"
+        f"\nobject pretrained {conf['yolo_object'].replace('.pt', '')} classes : {CLASS_NAMES_DICT}"
     )
     detection_classe = {id: CLASS_NAMES_DICT[id] for id in CLASS_ID}
+    print(f"\nour detection classe : {detection_classe}")
+
+    print(
+        f"\nface pretrained {conf['yolo_face'].replace('.pt', '')} classes : {face_CLASS_NAMES_DICT}"
+    )
+    detection_classe = {id: face_CLASS_NAMES_DICT[id] for id in face_CLASS_ID}
     print(f"\nour detection classe : {detection_classe}")
 
     # create BYTETracker instance
@@ -93,7 +98,10 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
                 break
 
             # model prediction on single frame and conversion to supervision Detections
+            face_results = face_model(frame)
             results = model(frame)
+
+            face_detections
             detections = Detections(
                 xyxy=results[0].boxes.xyxy.cpu().numpy(),
                 confidence=results[0].boxes.conf.cpu().numpy(),
