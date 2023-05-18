@@ -19,7 +19,6 @@ def run(conf: Dict) -> None:
         video_car_process(conf)
     elif conf["car_person"] == "person":
         video_person_process(conf)
-    pass
 
 def parse_args() -> None:
 
@@ -54,11 +53,11 @@ def parse_args() -> None:
     )
 
     parser.add_argument(
-        "--car_person",
+        "--place",
         type=str,
-        default="car",
-        help="label you want to detect",
-        choices=['person', 'car'],
+        default="outdoor",
+        help="the place you want to run this program.",
+        choices=['indoor', 'outdoor'],
     )
 
     parser.add_argument(
@@ -77,37 +76,6 @@ def parse_args() -> None:
         help="ending line's point that we count cars from that line. you can input this like : --line_end 20 30",
     )
 
-    parser.add_argument(
-        "--line1_start_calculate_speed",
-        nargs='+',
-        type=float,
-        default=(400 , 292),
-        help="line1_start_calculate_speed. you can input this like : --line1_start_calculate_speed 20 30",
-    )
-
-    parser.add_argument(
-        "--line1_end_calculate_speed",
-        nargs='+',
-        type=float,
-        default=(1300, 292),
-        help="line1_end_calculate_speed. you can input this like : --line1_end_calculate_speed 20 30",
-    )
-
-    parser.add_argument(
-        "--line2_start_calculate_speed",
-        nargs='+',
-        type=float,
-        default=(350, 492),
-        help="line2_start_calculate_speed. you can input this like : --line2_start_calculate_speed 20 30",
-    )
-
-    parser.add_argument(
-        "--line2_end_calculate_speed",
-        nargs='+',
-        type=float,
-        default=(1700, 492),
-        help="line2_end_calculate_speed. you can input this like : --line2_end_calculate_speed 20 30",
-    )
 
     opts = parser.parse_args()
     return opts
