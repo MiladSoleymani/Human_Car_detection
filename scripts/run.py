@@ -13,10 +13,7 @@ from typing import Dict
 
 
 def run(conf: Dict) -> None:
-    if conf["car_person"] == "car":
-        video_car_process(conf)
-    elif conf["car_person"] == "person":
-        video_person_process(conf)
+    video_process(conf)
 
 
 def parse_args() -> None:
