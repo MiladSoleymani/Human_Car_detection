@@ -132,7 +132,7 @@ def video_process(conf: Dict) -> None:
             detections.filter(mask=mask, inplace=True)
 
             for _, _, class_id, tracker_id in detections:
-                if class_id == 0 and tracker_id not in log_info_person["id"]:
+                if class_id == 0 and tracker_id not in log_info["id"]:
                     log_info["id"].append(tracker_id)
                     log_info["person_car"].append("person")
                     log_info["car_type"].append(None)
