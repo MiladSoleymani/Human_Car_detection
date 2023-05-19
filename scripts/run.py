@@ -5,6 +5,7 @@ sys.path.append(os.getcwd())
 
 from utils.process import (
     video_process,
+    video_outdoor_process,
 )
 
 import argparse
@@ -13,7 +14,12 @@ from typing import Dict
 
 
 def run(conf: Dict) -> None:
-    video_process(conf)
+    if conf["place"] == "outdoor":
+        video_process(conf)
+    elif conf["place"] == "indoor":
+        video_process(conf)
+        print(os.path.split(conf["video_save_path"]))
+        video_outdoor_process(conf)
 
 
 def parse_args() -> None:
