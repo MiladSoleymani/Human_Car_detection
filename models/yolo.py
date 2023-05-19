@@ -174,8 +174,7 @@ class YOLOv8_face:
 
             bboxes.append(bbox)
             scores.append(cls)
-            print(f"{kpts.shape = }")
-            landmarks.append(kpts)
+            landmarks.append(kpts[:, :3])  # Just take eyes
 
         bboxes = np.concatenate(bboxes, axis=0)
         scores = np.concatenate(scores, axis=0)
@@ -191,9 +190,6 @@ class YOLOv8_face:
         confidences = confidences[mask]
         classIds = classIds[mask]
         landmarks = landmarks[mask]
-
-        print(f"{classIds = }")
-        print(f"{landmarks.shape = }")
 
         indices = cv2.dnn.NMSBoxes(
             bboxes_wh.tolist(),
