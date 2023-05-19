@@ -191,7 +191,11 @@ class YOLOv8_face:
             confidences.tolist(),
             self.conf_threshold,
             self.iou_threshold,
-        ).flatten()
+        )
+
+        print(f"{indices}")
+        print(f"{type(indices)}")
+
         if len(indices) > 0:
             mlvl_bboxes = bboxes_wh[indices]
             confidences = confidences[indices]
