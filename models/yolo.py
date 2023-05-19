@@ -234,7 +234,7 @@ class YOLOv8_face:
                 (0, 0, 255),
                 thickness=2,
             )
-            for i in range(5):
+            for i in range(2):
                 cv2.circle(
                     image,
                     (int(kp[i * 3]), int(kp[i * 3 + 1])),
