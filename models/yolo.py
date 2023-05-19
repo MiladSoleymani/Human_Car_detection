@@ -206,11 +206,11 @@ class YOLOv8_face:
                 kpts[:, 0::3] * 2.0
                 + (self.anchors[stride][:, 0].reshape((-1, 1)) - 0.5)
             ) * stride
-            # kpts[:, 1::3] = (
-            #     kpts[:, 1::3] * 2.0
-            #     + (self.anchors[stride][:, 1].reshape((-1, 1)) - 0.5)
-            # ) * stride
-            # kpts[:, 2::3] = 1 / (1 + np.exp(-kpts[:, 2::3]))
+            kpts[:, 1::3] = (
+                kpts[:, 1::3] * 2.0
+                + (self.anchors[stride][:, 1].reshape((-1, 1)) - 0.5)
+            ) * stride
+            kpts[:, 2::3] = 1 / (1 + np.exp(-kpts[:, 2::3]))
 
             bbox -= np.array([[padw, padh, padw, padh]])  ###合理使用广播法则
             bbox *= np.array([[scale_w, scale_h, scale_w, scale_h]])
