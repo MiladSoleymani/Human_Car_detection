@@ -108,8 +108,11 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
 
             for x, y in zip(x_points, y_points):
                 print(f"{x}, {y}")
-                landmarks_time_map[x, y] += 1
-                landmarks_heat_map[x : x + 2, y : y + 2] += 1
+                landmarks_time_map[x[0], y[0]] += 1  # right eye
+                landmarks_time_map[x[1], y[1]] += 1  # left eye
+
+                landmarks_heat_map[x[0] : x[0] + 2, y[0] : [0] + 2] += 1
+                landmarks_heat_map[x[1] : x[1] + 2, y[1] : y[1] + 2] += 1
 
             frame = face_model.draw_detections(
                 frame, boxes, scores, kpts
