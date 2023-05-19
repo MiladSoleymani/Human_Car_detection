@@ -14,20 +14,15 @@ from dataclasses import dataclass
 
 from deepface import DeepFace
 
-from models.yolo import load_yolo, load_yolo_face, YOLOv8_face
+from models.yolo import load_yolo, YOLOv8_face
 
 from utils.utils import (
     detections2boxes,
     match_detections_with_tracks,
-    calculate_car_center,
-    find_best_region,
     log,
 )
 
 from typing import Tuple, Dict
-import math
-import time
-import os
 
 
 @dataclass(frozen=True)
@@ -41,7 +36,6 @@ class BYTETrackerArgs:
 
 
 def video_process(conf: Dict) -> Tuple[np.array, np.array]:
-    start = time.time()
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
@@ -61,21 +55,14 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
     print(video_info)
     # create frame generator
     generator = get_video_frames_generator(conf["video_target_path"])
-    # create LineCounter instance
-    LINE_START = Point(conf["line_start"][0], conf["line_start"][1])
-    LINE_END = Point(conf["line_end"][0], conf["line_end"][1])
-    line_counter = LineCounter(start=LINE_START, end=LINE_END)
     # create instance of BoxAnnotator and LineCounterAnnotator
     box_annotator = BoxAnnotator(
         color=ColorPalette(), thickness=1, text_thickness=1, text_scale=0.4
     )
-    line_annotator = LineCounterAnnotator(thickness=1, text_thickness=1, text_scale=0.4)
-
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
-        width, height = video_info.width, video_info.height
-        landmarks_time_map = np.zeros((height, width))
-        landmarks_heat_map = np.zeros((height, width))
+        landmarks_time_map = np.zeros((video_info.height, video_info.width))
+        landmarks_heat_map = np.zeros((video_info.height, video_info.width))
 
         log_info_person = {
             "id": [],
@@ -89,17 +76,15 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
             "speed": [],
         }
 
-        detected_tracker_id = []
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
             if idx == 200:
                 break
 
-            # model prediction on single frame and conversion to supervision Detections
-            boxes, scores, classids, kpts, eyes = face_model.detect(frame)
+            # face model prediction on single frame
+            boxes, scores, _, kpts, _ = face_model.detect(frame)
 
             print(f"{kpts.shape = }")
-
             x_points = kpts[..., 0::3].astype(int)  # extract x points
             y_points = kpts[..., 1::3].astype(int)  # extract y points
 
@@ -120,6 +105,8 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
             frame = face_model.draw_detections(
                 frame, boxes, scores, kpts
             )  # change to eye
+
+            # object model prediction on single frame
             results = model(frame)
 
             detections = Detections(
@@ -189,16 +176,13 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
                 for _, confidence, class_id, tracker_id in detections
             ]
 
-            # updating line counter
-            line_counter.update(detections=detections)
             # annotate and display frame
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels
             )
-            line_annotator.annotate(frame=frame, line_counter=line_counter)
             sink.write_frame(frame)
-    # Normalize the heat map
 
+    # Normalize the heat map
     landmarks_heat_map = landmarks_heat_map.T / np.max(landmarks_heat_map)
 
     # Convert the heat map to color using a colormap
