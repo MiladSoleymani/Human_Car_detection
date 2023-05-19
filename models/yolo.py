@@ -117,6 +117,7 @@ class YOLOv8_face:
         blob = cv2.dnn.blobFromImage(input_img)
         self.net.setInput(blob)
         outputs = self.net.forward(self.net.getUnconnectedOutLayersNames())
+        self.extract_classes(outputs)
         # if isinstance(outputs, tuple):
         #     outputs = list(outputs)
         # if float(cv2.__version__[:3])>=4.7:
@@ -129,6 +130,32 @@ class YOLOv8_face:
         eyes = self.extract_eye_regions(outputs)
 
         return det_bboxes, det_conf, det_classid, landmarks, eyes
+
+    def extract_classes(self, outputs):
+        outputs = np.array([cv2.transpose(outputs[0])])
+        rows = outputs.shape[1]
+
+        boxes = []
+        scores = []
+        class_ids = []
+
+        for i in range(rows):
+            classes_scores = outputs[0][i][4:]
+            (minScore, maxScore, minClassLoc, (x, maxClassIndex)) = cv2.minMaxLoc(
+                classes_scores
+            )
+            if maxScore >= 0.25:
+                box = [
+                    outputs[0][i][0] - (0.5 * outputs[0][i][2]),
+                    outputs[0][i][1] - (0.5 * outputs[0][i][3]),
+                    outputs[0][i][2],
+                    outputs[0][i][3],
+                ]
+                boxes.append(box)
+                scores.append(maxScore)
+                class_ids.append(maxClassIndex)
+
+        print(f"{class_ids = }")
 
     def extract_eye_regions(self, predictions):
         eyes = []
