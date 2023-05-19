@@ -98,12 +98,13 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
             # model prediction on single frame and conversion to supervision Detections
             boxes, scores, classids, kpts, eyes = face_model.detect(frame)
 
-            for eye_points in kpts:
-                print(f"{eye_points = }")
-                landmarks_time_map[eye_points] += 1
-                landmarks_heat_map[
-                    eye_points[0] : eye_points[0] + 2, eye_points[1] : eye_points[1] + 2
-                ] += 1
+            x_points = kpts[..., 0::3].astype(int)  # extract x points
+            y_points = kpts[..., 1::3].astype(int)  # extract y points
+
+            for x, y in zip(x_points, y_points):
+                print(f"{x}, {y}")
+                landmarks_time_map[x, y] += 1
+                landmarks_heat_map[x : x + 2, y : y + 2] += 1
 
             frame = face_model.draw_detections(
                 frame, boxes, scores, kpts
