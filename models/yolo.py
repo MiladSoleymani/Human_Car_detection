@@ -133,7 +133,11 @@ class YOLOv8_face:
     def extract_eye_regions(self, predictions):
         eyes = []
         for output in predictions:
+            print(f"{output = }")
             for detection in output:
+                print(f"{detection = }")
+                print(f"{detection[4] = }")
+
                 confidence = detection[4]
                 if confidence > 0.5:  # Adjust the confidence threshold as needed
                     x, y, w, h = detection[:4]
