@@ -193,8 +193,8 @@ class YOLOv8_face:
             self.iou_threshold,
         )
 
-        print(f"{indices}")
-        print(f"{type(indices)}")
+        if isinstance(indices, np.ndarray):
+            indices = indices.flatten()
 
         if len(indices) > 0:
             mlvl_bboxes = bboxes_wh[indices]
