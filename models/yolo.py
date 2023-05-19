@@ -119,7 +119,6 @@ class YOLOv8_face:
         blob = cv2.dnn.blobFromImage(input_img)
         self.net.setInput(blob)
         outputs = self.net.forward(self.net.getUnconnectedOutLayersNames())
-        # self.extract_classes(outputs)
         # if isinstance(outputs, tuple):
         #     outputs = list(outputs)
         # if float(cv2.__version__[:3])>=4.7:
@@ -132,50 +131,6 @@ class YOLOv8_face:
         # eyes = self.extract_eye_regions(outputs)
 
         return det_bboxes, det_conf, det_classid, landmarks, eyes
-
-    def extract_classes(self, outputs):
-        outputs = np.array([cv2.transpose(outputs[0])])
-        rows = outputs.shape[1]
-
-        boxes = []
-        scores = []
-        class_ids = []
-
-        for i in range(rows):
-            classes_scores = outputs[0][i][4:]
-            (minScore, maxScore, minClassLoc, (x, maxClassIndex)) = cv2.minMaxLoc(
-                classes_scores
-            )
-            if maxScore >= 0.25:
-                box = [
-                    outputs[0][i][0] - (0.5 * outputs[0][i][2]),
-                    outputs[0][i][1] - (0.5 * outputs[0][i][3]),
-                    outputs[0][i][2],
-                    outputs[0][i][3],
-                ]
-                boxes.append(box)
-                scores.append(maxScore)
-                class_ids.append(maxClassIndex)
-
-        print(f"{class_ids = }")
-
-    def extract_eye_regions(self, predictions):
-        eyes = []
-        for output in predictions:
-            print(f"{output.shape = }")
-            for detection in output:
-                print(f"{detection.shape = }")
-                print(f"{detection[4] = }")
-
-                confidence = detection[4]
-                if confidence > 0.5:  # Adjust the confidence threshold as needed
-                    x, y, w, h = detection[:4]
-                    xmin = int((x - w / 2) * self.input_width)
-                    ymin = int((y - h / 2) * self.input_height)
-                    xmax = int((x + w / 2) * self.input_width)
-                    ymax = int((y + h / 2) * self.input_height)
-                    eyes.append((xmin, ymin, xmax, ymax))
-        return eyes
 
     def post_process(self, preds, scale_h, scale_w, padh, padw):
         bboxes, scores, landmarks = [], [], []
@@ -205,12 +160,12 @@ class YOLOv8_face:
             kpts[:, 0::3] = (
                 kpts[:, 0::3] * 2.0
                 + (self.anchors[stride][:, 0].reshape((-1, 1)) - 0.5)
-            ) * stride
+            ) * stride  # x
             kpts[:, 1::3] = (
                 kpts[:, 1::3] * 2.0
                 + (self.anchors[stride][:, 1].reshape((-1, 1)) - 0.5)
-            ) * stride
-            kpts[:, 2::3] = 1 / (1 + np.exp(-kpts[:, 2::3]))
+            ) * stride  # y
+            kpts[:, 2::3] = 1 / (1 + np.exp(-kpts[:, 2::3]))  # confidence
 
             bbox -= np.array([[padw, padh, padw, padh]])  ###合理使用广播法则
             bbox *= np.array([[scale_w, scale_h, scale_w, scale_h]])
@@ -219,6 +174,7 @@ class YOLOv8_face:
 
             bboxes.append(bbox)
             scores.append(cls)
+            print(f"{kpts.shape = }")
             landmarks.append(kpts)
 
         bboxes = np.concatenate(bboxes, axis=0)
