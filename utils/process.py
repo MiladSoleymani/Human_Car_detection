@@ -92,8 +92,10 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
                 break
 
             # model prediction on single frame and conversion to supervision Detections
-            boxes, scores, classids, kpts = face_model.detect(frame)
-            frame = face_model.draw_detections(frame, boxes, scores, kpts)
+            boxes, scores, classids, kpts, eyes = face_model.detect(frame)
+            frame = face_model.draw_detections(
+                frame, boxes, scores, eyes
+            )  # change to eye
             results = model(frame)
 
             detections = Detections(

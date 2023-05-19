@@ -125,7 +125,24 @@ class YOLOv8_face:
         det_bboxes, det_conf, det_classid, landmarks = self.post_process(
             outputs, scale_h, scale_w, padh, padw
         )
-        return det_bboxes, det_conf, det_classid, landmarks
+
+        eyes = self.extract_eye_regions(outputs)
+
+        return det_bboxes, det_conf, det_classid, landmarks, eyes
+
+    def extract_eye_regions(self, predictions):
+        eyes = []
+        for output in predictions:
+            for detection in output:
+                confidence = detection[4]
+                if confidence > 0.5:  # Adjust the confidence threshold as needed
+                    x, y, w, h = detection[:4]
+                    xmin = int((x - w / 2) * self.input_width)
+                    ymin = int((y - h / 2) * self.input_height)
+                    xmax = int((x + w / 2) * self.input_width)
+                    ymax = int((y + h / 2) * self.input_height)
+                    eyes.append((xmin, ymin, xmax, ymax))
+        return eyes
 
     def post_process(self, preds, scale_h, scale_w, padh, padw):
         bboxes, scores, landmarks = [], [], []
