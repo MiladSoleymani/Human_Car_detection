@@ -43,7 +43,7 @@ def parse_args() -> None:
     parser.add_argument(
         "--yolo_object",
         type=str,
-        default="models/files/yolov8x.pt",
+        default="yolov8x.pt",
         help="setting yolo type that want to use",
     )
 
