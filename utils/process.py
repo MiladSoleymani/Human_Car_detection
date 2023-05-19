@@ -73,6 +73,10 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
 
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
+        width, height = video_info.width, video_info.height
+        landmarks_time_map = np.zeros((height, width))
+        landmarks_heat_map = np.zeros((height, width))
+
         log_info_person = {
             "id": [],
             "age": [],
@@ -93,6 +97,13 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
 
             # model prediction on single frame and conversion to supervision Detections
             boxes, scores, classids, kpts, eyes = face_model.detect(frame)
+
+            for eye_points in kpts:
+                landmarks_time_map[eye_points] += 1
+                landmarks_heat_map[
+                    eye_points[0] : eye_points[0] + 2, eye_points[1] : eye_points[1] + 2
+                ] += 1
+
             frame = face_model.draw_detections(
                 frame, boxes, scores, kpts
             )  # change to eye
@@ -173,3 +184,15 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
             )
             line_annotator.annotate(frame=frame, line_counter=line_counter)
             sink.write_frame(frame)
+    # Normalize the heat map
+
+    landmarks_heat_map = landmarks_heat_map.T / np.max(landmarks_heat_map)
+
+    # Convert the heat map to color using a colormap
+    heat_map_color = cv2.applyColorMap(
+        (landmarks_heat_map * 255).astype(np.uint8), cv2.COLORMAP_JET
+    )
+
+    cv2.imwrite("cv2_heat.jpg", heat_map_color)
+
+    print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
