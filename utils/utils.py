@@ -47,15 +47,9 @@ def match_detections_with_tracks(
 
 
 def log(info: Dict, log_save_path: str) -> None:
-    if "age" in info.keys():
-        info = pd.DataFrame(data=info)
-        name = "log_person_" + str(uuid.uuid4())[:13] + ".csv"
-        info.to_csv(os.path.join(log_save_path, name), index=False)
-
-    elif "car_type" in info.keys():
-        info = pd.DataFrame(data=info)
-        name = "log_car_" + str(uuid.uuid4())[:13] + ".csv"
-        info.to_csv(os.path.join(log_save_path, name), index=False)
+    info = pd.DataFrame(data=info)
+    name = "log_car_" + str(uuid.uuid4())[:13] + ".csv"
+    info.to_csv(os.path.join(log_save_path, name), index=False)
 
 
 def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
