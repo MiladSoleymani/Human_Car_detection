@@ -237,6 +237,7 @@ class YOLOv8_face:
         landmarks = landmarks[mask]
 
         print(f"{classIds = }")
+        print(f"{landmarks.shape = }")
 
         indices = cv2.dnn.NMSBoxes(
             bboxes_wh.tolist(),
