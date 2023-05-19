@@ -107,6 +107,9 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
             print(f"{y_points.shape = }")
 
             for x, y in zip(x_points, y_points):
+                if x[0] >= 720 or x[1] >= 720 or y[1] >= 1280 or y[0] >= 1280:
+                    continue
+
                 print(f"{x}, {y}")
                 landmarks_time_map[x[0], y[0]] += 1  # right eye
                 landmarks_time_map[x[1], y[1]] += 1  # left eye
