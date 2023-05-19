@@ -183,129 +183,129 @@ def video_process(conf: Dict) -> None:
     print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
 
 
-def outdoor_proccess(conf: Dict) -> None:
-    # create VideoInfo instance
-    video_info = VideoInfo.from_video_path(conf["video_target_path"])
-    print("\nvideo Info : ", end="")
-    print(video_info)
-    # create frame generator
-    generator = get_video_frames_generator(conf["video_target_path"])
-    # open target video file
-    with VideoSink(conf["video_save_path"], video_info) as sink:
-        # loop over video frames
-        for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 200:
-                break
+# def outdoor_proccess(conf: Dict) -> None:
+#     # create VideoInfo instance
+#     video_info = VideoInfo.from_video_path(conf["video_target_path"])
+#     print("\nvideo Info : ", end="")
+#     print(video_info)
+#     # create frame generator
+#     generator = get_video_frames_generator(conf["video_target_path"])
+#     # open target video file
+#     with VideoSink(conf["video_save_path"], video_info) as sink:
+#         # loop over video frames
+#         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
+#             if idx == 200:
+#                 break
 
-            # face model prediction on single frame
-            boxes, scores, _, kpts, _ = face_model.detect(frame)
+#             # face model prediction on single frame
+#             boxes, scores, _, kpts, _ = face_model.detect(frame)
 
-            print(f"{kpts.shape = }")
-            x_points = kpts[..., 0::3].astype(int)  # extract x points
-            y_points = kpts[..., 1::3].astype(int)  # extract y points
+#             print(f"{kpts.shape = }")
+#             x_points = kpts[..., 0::3].astype(int)  # extract x points
+#             y_points = kpts[..., 1::3].astype(int)  # extract y points
 
-            print(f"{x_points.shape = }")
-            print(f"{y_points.shape = }")
+#             print(f"{x_points.shape = }")
+#             print(f"{y_points.shape = }")
 
-            for x, y in zip(x_points, y_points):
-                if x[0] >= 720 or x[1] >= 720 or y[1] >= 1280 or y[0] >= 1280:
-                    continue
+#             for x, y in zip(x_points, y_points):
+#                 if x[0] >= 720 or x[1] >= 720 or y[1] >= 1280 or y[0] >= 1280:
+#                     continue
 
-                print(f"{x}, {y}")
-                landmarks_time_map[x[0], y[0]] += 1  # right eye
-                landmarks_time_map[x[1], y[1]] += 1  # left eye
+#                 print(f"{x}, {y}")
+#                 landmarks_time_map[x[0], y[0]] += 1  # right eye
+#                 landmarks_time_map[x[1], y[1]] += 1  # left eye
 
-                landmarks_heat_map[x[0] : x[0] + 2, y[0] : y[0] + 2] += 1
-                landmarks_heat_map[x[1] : x[1] + 2, y[1] : y[1] + 2] += 1
+#                 landmarks_heat_map[x[0] : x[0] + 2, y[0] : y[0] + 2] += 1
+#                 landmarks_heat_map[x[1] : x[1] + 2, y[1] : y[1] + 2] += 1
 
-            frame = face_model.draw_detections(
-                frame, boxes, scores, kpts
-            )  # change to eye
+#             frame = face_model.draw_detections(
+#                 frame, boxes, scores, kpts
+#             )  # change to eye
 
-            # object model prediction on single frame
-            results = model(frame)
+#             # object model prediction on single frame
+#             results = model(frame)
 
-            detections = Detections(
-                xyxy=results[0].boxes.xyxy.cpu().numpy(),
-                confidence=results[0].boxes.conf.cpu().numpy(),
-                class_id=results[0].boxes.cls.cpu().numpy().astype(int),
-            )
-            # filtering out detections with unwanted classes
-            mask = np.array(
-                [class_id in CLASS_ID for class_id in detections.class_id], dtype=bool
-            )
-            detections.filter(mask=mask, inplace=True)
-            # tracking detections
-            tracks = byte_tracker.update(
-                output_results=detections2boxes(detections=detections),
-                img_info=frame.shape,
-                img_size=frame.shape,
-            )
-            tracker_id = match_detections_with_tracks(
-                detections=detections, tracks=tracks
-            )
-            detections.tracker_id = np.array(tracker_id)
-            # filtering out detections without trackers
-            mask = np.array(
-                [tracker_id is not None for tracker_id in detections.tracker_id],
-                dtype=bool,
-            )
-            detections.filter(mask=mask, inplace=True)
+#             detections = Detections(
+#                 xyxy=results[0].boxes.xyxy.cpu().numpy(),
+#                 confidence=results[0].boxes.conf.cpu().numpy(),
+#                 class_id=results[0].boxes.cls.cpu().numpy().astype(int),
+#             )
+#             # filtering out detections with unwanted classes
+#             mask = np.array(
+#                 [class_id in CLASS_ID for class_id in detections.class_id], dtype=bool
+#             )
+#             detections.filter(mask=mask, inplace=True)
+#             # tracking detections
+#             tracks = byte_tracker.update(
+#                 output_results=detections2boxes(detections=detections),
+#                 img_info=frame.shape,
+#                 img_size=frame.shape,
+#             )
+#             tracker_id = match_detections_with_tracks(
+#                 detections=detections, tracks=tracks
+#             )
+#             detections.tracker_id = np.array(tracker_id)
+#             # filtering out detections without trackers
+#             mask = np.array(
+#                 [tracker_id is not None for tracker_id in detections.tracker_id],
+#                 dtype=bool,
+#             )
+#             detections.filter(mask=mask, inplace=True)
 
-            for _, _, class_id, tracker_id in detections:
-                if class_id == 0 and tracker_id not in log_info_person["id"]:
-                    log_info_person["id"].append(tracker_id)
-                    log_info_person["age"].append(None)
-                    log_info_person["gender"].append(None)
+#             for _, _, class_id, tracker_id in detections:
+#                 if class_id == 0 and tracker_id not in log_info_person["id"]:
+#                     log_info_person["id"].append(tracker_id)
+#                     log_info_person["age"].append(None)
+#                     log_info_person["gender"].append(None)
 
-                elif class_id != 0 and tracker_id not in log_info_car["id"]:
-                    log_info_car["id"].append(tracker_id)
-                    log_info_car["car_type"].append(None)
-                    log_info_car["speed"].append(None)
+#                 elif class_id != 0 and tracker_id not in log_info_car["id"]:
+#                     log_info_car["id"].append(tracker_id)
+#                     log_info_car["car_type"].append(None)
+#                     log_info_car["speed"].append(None)
 
-            if len(log_info_person["id"]) > 5:
-                log(log_info_person, conf["log_save_path"])
+#             if len(log_info_person["id"]) > 5:
+#                 log(log_info_person, conf["log_save_path"])
 
-                log_info_person = {
-                    "id": [],
-                    "age": [],
-                    "gender": [],
-                }
+#                 log_info_person = {
+#                     "id": [],
+#                     "age": [],
+#                     "gender": [],
+#                 }
 
-            if len(log_info_car["id"]) > 5:
-                log(log_info_car, conf["log_save_path"])
+#             if len(log_info_car["id"]) > 5:
+#                 log(log_info_car, conf["log_save_path"])
 
-                log_info_car = {
-                    "id": [],
-                    "car_type": [],
-                    "speed": [],
-                }
+#                 log_info_car = {
+#                     "id": [],
+#                     "car_type": [],
+#                     "speed": [],
+#                 }
 
-            if idx == (video_info.total_frames - 1):
-                log(log_info_car, conf["log_save_path"])
-                log(log_info_person, conf["log_save_path"])
-                break
+#             if idx == (video_info.total_frames - 1):
+#                 log(log_info_car, conf["log_save_path"])
+#                 log(log_info_person, conf["log_save_path"])
+#                 break
 
-            # format custom labels
-            labels = [
-                f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
-                for _, confidence, class_id, tracker_id in detections
-            ]
+#             # format custom labels
+#             labels = [
+#                 f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
+#                 for _, confidence, class_id, tracker_id in detections
+#             ]
 
-            # annotate and display frame
-            frame = box_annotator.annotate(
-                frame=frame, detections=detections, labels=labels
-            )
-            sink.write_frame(frame)
+#             # annotate and display frame
+#             frame = box_annotator.annotate(
+#                 frame=frame, detections=detections, labels=labels
+#             )
+#             sink.write_frame(frame)
 
-    # Normalize the heat map
-    landmarks_heat_map = landmarks_heat_map.T / np.max(landmarks_heat_map)
+#     # Normalize the heat map
+#     landmarks_heat_map = landmarks_heat_map.T / np.max(landmarks_heat_map)
 
-    # Convert the heat map to color using a colormap
-    heat_map_color = cv2.applyColorMap(
-        (landmarks_heat_map * 255).astype(np.uint8), cv2.COLORMAP_JET
-    )
+#     # Convert the heat map to color using a colormap
+#     heat_map_color = cv2.applyColorMap(
+#         (landmarks_heat_map * 255).astype(np.uint8), cv2.COLORMAP_JET
+#     )
 
-    cv2.imwrite("cv2_heat.jpg", heat_map_color)
+#     cv2.imwrite("cv2_heat.jpg", heat_map_color)
 
-    print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
+#     print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")

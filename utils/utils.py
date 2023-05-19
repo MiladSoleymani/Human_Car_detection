@@ -38,7 +38,6 @@ def match_detections_with_tracks(
     track2detection = np.argmax(iou, axis=1)
 
     tracker_ids = [None] * len(detections)
-
     for tracker_index, detection_index in enumerate(track2detection):
         if iou[tracker_index, detection_index] != 0:
             tracker_ids[detection_index] = tracks[tracker_index].track_id
