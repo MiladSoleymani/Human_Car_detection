@@ -174,7 +174,7 @@ class YOLOv8_face:
 
             bboxes.append(bbox)
             scores.append(cls)
-            landmarks.append(kpts[:, :3])  # Just take eyes
+            landmarks.append(kpts[:, :6])  # Just take eyes
 
         bboxes = np.concatenate(bboxes, axis=0)
         scores = np.concatenate(scores, axis=0)
@@ -240,7 +240,7 @@ class YOLOv8_face:
             for i in range(2):
                 cv2.circle(
                     image,
-                    (int(kp[i * 1]), int(kp[i * 1 + 1])),
+                    (int(kp[i * 2]), int(kp[i * 2 + 1])),
                     4,
                     (0, 255, 0),
                     thickness=-1,
