@@ -99,6 +99,7 @@ def video_process(conf: Dict) -> Tuple[np.array, np.array]:
             boxes, scores, classids, kpts, eyes = face_model.detect(frame)
 
             for eye_points in kpts:
+                print(f"{eye_points = }")
                 landmarks_time_map[eye_points] += 1
                 landmarks_heat_map[
                     eye_points[0] : eye_points[0] + 2, eye_points[1] : eye_points[1] + 2
