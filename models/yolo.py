@@ -108,6 +108,8 @@ class YOLOv8_face:
         return img, newh, neww, top, left
 
     def detect(self, srcimg):
+        eyes = None
+
         input_img, newh, neww, padh, padw = self.resize_image(
             cv2.cvtColor(srcimg, cv2.COLOR_BGR2RGB)
         )
@@ -117,7 +119,7 @@ class YOLOv8_face:
         blob = cv2.dnn.blobFromImage(input_img)
         self.net.setInput(blob)
         outputs = self.net.forward(self.net.getUnconnectedOutLayersNames())
-        self.extract_classes(outputs)
+        # self.extract_classes(outputs)
         # if isinstance(outputs, tuple):
         #     outputs = list(outputs)
         # if float(cv2.__version__[:3])>=4.7:
@@ -127,7 +129,7 @@ class YOLOv8_face:
             outputs, scale_h, scale_w, padh, padw
         )
 
-        eyes = self.extract_eye_regions(outputs)
+        # eyes = self.extract_eye_regions(outputs)
 
         return det_bboxes, det_conf, det_classid, landmarks, eyes
 
@@ -204,11 +206,11 @@ class YOLOv8_face:
                 kpts[:, 0::3] * 2.0
                 + (self.anchors[stride][:, 0].reshape((-1, 1)) - 0.5)
             ) * stride
-            kpts[:, 1::3] = (
-                kpts[:, 1::3] * 2.0
-                + (self.anchors[stride][:, 1].reshape((-1, 1)) - 0.5)
-            ) * stride
-            kpts[:, 2::3] = 1 / (1 + np.exp(-kpts[:, 2::3]))
+            # kpts[:, 1::3] = (
+            #     kpts[:, 1::3] * 2.0
+            #     + (self.anchors[stride][:, 1].reshape((-1, 1)) - 0.5)
+            # ) * stride
+            # kpts[:, 2::3] = 1 / (1 + np.exp(-kpts[:, 2::3]))
 
             bbox -= np.array([[padw, padh, padw, padh]])  ###合理使用广播法则
             bbox *= np.array([[scale_w, scale_h, scale_w, scale_h]])
