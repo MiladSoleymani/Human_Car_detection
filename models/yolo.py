@@ -16,17 +16,6 @@ def load_yolo(yolo_path: str):
     return model, CLASS_NAMES_DICT, CLASS_ID
 
 
-def load_yolo_face(yolo_path: str):
-    model = YOLO(yolo_path)
-
-    # dict maping class_id to class_name
-    CLASS_NAMES_DICT = model.model.names
-    # class_ids of interest - person, car, motorcycle, bus and truck
-    CLASS_ID = [0]
-
-    return model, CLASS_NAMES_DICT, CLASS_ID
-
-
 class YOLOv8_face:
     def __init__(self, path, conf_thres=0.7, iou_thres=0.5):
         self.conf_threshold = conf_thres
