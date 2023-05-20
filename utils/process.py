@@ -199,6 +199,7 @@ def video_process(conf: Dict) -> None:
                     else:
                         labels.append(f"#{tracker_id} {CLASS_NAMES_DICT[class_id]}")
 
+            cv2.polylines(frame, [np.array(area, np.int32)], True, (15, 228, 10), 3)
             # annotate and display frame
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels
@@ -207,7 +208,6 @@ def video_process(conf: Dict) -> None:
 
     # Normalize the heat map
     landmarks_heat_map = landmarks_heat_map.T / np.max(landmarks_heat_map)
-
     # Convert the heat map to color using a colormap
     heat_map_color = cv2.applyColorMap(
         (landmarks_heat_map * 255).astype(np.uint8), cv2.COLORMAP_JET
