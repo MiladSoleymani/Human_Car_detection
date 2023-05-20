@@ -179,7 +179,7 @@ def video_process(conf: Dict) -> None:
 
                         print(f"{intersection = }")
 
-                        if intersection == 1:
+                        if intersection >= 0:
                             count_dict[f"line_{i}"] += 1
 
                     if result >= 0:
