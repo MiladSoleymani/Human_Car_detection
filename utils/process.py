@@ -182,11 +182,11 @@ def video_process(conf: Dict) -> None:
 def video_outdoor_process(conf: Dict) -> None:
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
-    model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_version"])
+    model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
     CLASS_ID = [CLASS_ID[0]]
 
     print(
-        f"\npretrained {conf['yolo_version'].replace('.pt', '')} classes : {CLASS_NAMES_DICT}"
+        f"\npretrained {conf['yolo_object'].replace('.pt', '')} classes : {CLASS_NAMES_DICT}"
     )
     detection_classe = {id: CLASS_NAMES_DICT[id] for id in CLASS_ID}
     print(f"\nour detection classe : {detection_classe}")
