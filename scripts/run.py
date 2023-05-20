@@ -18,6 +18,7 @@ from typing import Dict
 def run(conf: Dict) -> None:
     # Create the save path if it's not exists
     os.makedirs(conf["heatmap_savepath"], exist_ok=True)
+    print(f"{conf['log_save_path'] = }")
 
     if conf["place"] == "outdoor":
         video_process(conf)
