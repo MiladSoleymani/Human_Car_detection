@@ -76,19 +76,17 @@ def parse_args() -> None:
     )
 
     parser.add_argument(
-        "--line_start",
-        nargs="+",
-        type=float,
-        default=(200, 492),
-        help="starting line's point that we count cars from that line. you can input this like : --line_start 20 30",
+        "--area_path",
+        type=str,
+        default="configs/areas.json",
+        help="determine a area to calculate speeds",
     )
 
     parser.add_argument(
-        "--line_end",
-        nargs="+",
-        type=float,
-        default=(1900, 492),
-        help="ending line's point that we count cars from that line. you can input this like : --line_end 20 30",
+        "--line_path",
+        type=str,
+        default="configs/lines.json",
+        help="determine a line area",
     )
 
     opts = parser.parse_args()
