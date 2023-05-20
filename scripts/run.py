@@ -19,7 +19,7 @@ def run(conf: Dict) -> None:
     if conf["place"] == "outdoor":
         video_process(conf)
     elif conf["place"] == "indoor":
-        video_process(conf)
+        # video_process(conf)
         print(f"old path: {os.path.split(conf['video_save_path'])}")
 
         # Change directory name
