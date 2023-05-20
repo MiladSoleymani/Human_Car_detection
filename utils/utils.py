@@ -77,3 +77,8 @@ def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
                     )
 
     return best_detection
+
+
+def modify_path_for_indoor(path: str):
+    file_name, format = os.path.splitext(os.path.basename(path["video_save_path"]))
+    return os.path.join(os.path.dirname(path, f"{file_name}_indoor{format}"))

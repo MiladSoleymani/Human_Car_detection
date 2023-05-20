@@ -8,6 +8,8 @@ from utils.process import (
     video_outdoor_process,
 )
 
+from utils.utils import modify_path_for_indoor
+
 import argparse
 
 from typing import Dict
@@ -18,7 +20,12 @@ def run(conf: Dict) -> None:
         video_process(conf)
     elif conf["place"] == "indoor":
         video_process(conf)
-        print(os.path.split(conf["video_save_path"]))
+        print(f"old path: {os.path.split(conf['video_save_path'])}")
+
+        # Change directory name
+        conf["video_save_path"] = modify_path_for_indoor(conf["video_save_path"])
+        print(f"new path: {os.path.split(conf['video_save_path'])}")
+
         video_outdoor_process(conf)
 
 
