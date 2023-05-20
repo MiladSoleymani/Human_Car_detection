@@ -21,6 +21,8 @@ from utils.utils import (
     detections2boxes,
     match_detections_with_tracks,
     log,
+    extract_area_coordinates,
+    calculate_car_center,
 )
 
 from typing import Tuple, Dict
@@ -60,6 +62,12 @@ def video_process(conf: Dict) -> None:
     box_annotator = BoxAnnotator(
         color=ColorPalette(), thickness=1, text_thickness=1, text_scale=0.4
     )
+    area, distance = extract_area_coordinates(
+        conf["area_path"]
+    )  # extract area and distance
+
+    in_polygon = {}
+    speed = {}
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
         landmarks_time_map = np.zeros((video_info.height, video_info.width))
@@ -127,6 +135,23 @@ def video_process(conf: Dict) -> None:
             )
             detections.filter(mask=mask, inplace=True)
 
+            for bbox, confidence, class_id, tracker_id in detections:
+                if class_id != 0:
+                    cx, cy = calculate_car_center(bbox)
+                    result = cv2.pointPolygonTest(
+                        np.array(area, np.int32), (int(cx), int(cy)), False
+                    )
+                    if result >= 0:
+                        if str(tracker_id) in in_polygon.keys():
+                            in_polygon[str(tracker_id)] += 1
+                        else:
+                            in_polygon[str(tracker_id)] = 1
+
+                    elif result < 0:
+                        if str(tracker_id) in in_polygon.keys():
+                            time = in_polygon[str(tracker_id)] / video_info.fps
+                            speed[str(tracker_id)] = (distance / time) * 3.6
+
             for _, _, class_id, tracker_id in detections:
                 if class_id == 0 and tracker_id not in log_info["id"]:
                     log_info["id"].append(tracker_id)
@@ -138,7 +163,7 @@ def video_process(conf: Dict) -> None:
                     log_info["id"].append(tracker_id)
                     log_info["person_car"].append("car")
                     log_info["car_type"].append(None)
-                    log_info["speed"].append(None)
+                    log_info["speed"].append(speed[str(tracker_id)])
 
             if len(log_info["id"]) > 5:
                 log(log_info, conf["log_save_path"])
@@ -155,10 +180,20 @@ def video_process(conf: Dict) -> None:
                 break
 
             # format custom labels
-            labels = [
-                f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
-                for _, confidence, class_id, tracker_id in detections
-            ]
+            labels = []
+            for bbox, confidence, class_id, tracker_id in detections:
+                if class_id == 0:
+                    labels.append(
+                        f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
+                    )
+                else:
+                    if str(tracker_id) in speed.keys():
+                        speed_tracker_id = speed[str(tracker_id)]
+                        labels.append(
+                            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {speed_tracker_id:0.2f}km/h"
+                        )
+                    else:
+                        labels.append(f"#{tracker_id} {CLASS_NAMES_DICT[class_id]}")
 
             # annotate and display frame
             frame = box_annotator.annotate(
