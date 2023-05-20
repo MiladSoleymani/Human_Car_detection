@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from tqdm import tqdm
+import os
 
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
@@ -23,6 +24,7 @@ from utils.utils import (
     log,
     extract_area_coordinates,
     calculate_car_center,
+    combine_frame_with_heatmap,
 )
 
 from typing import Tuple, Dict
@@ -72,6 +74,7 @@ def video_process(conf: Dict) -> None:
     with VideoSink(conf["video_save_path"], video_info) as sink:
         landmarks_time_map = np.zeros((video_info.height, video_info.width))
         landmarks_heat_map = np.zeros((video_info.height, video_info.width))
+        heat_map = np.zeros((video_info.height, video_info.width), dtype=np.float32)
 
         log_info = {
             "id": [],
@@ -107,6 +110,23 @@ def video_process(conf: Dict) -> None:
 
             # object model prediction on single frame
             results = model(frame)
+
+            xywh = results[0].boxes.xywh.cpu().numpy()
+            confs = results[0].boxes.conf.cpu().numpy()
+
+            for conf, cordinate in zip(confs, xywh):
+                if conf > 0.5:
+                    # Accumulate the confidence score in the heat map
+                    (centerX, centerY, bbox_width, bbox_height) = cordinate.astype(
+                        "int"
+                    )
+                    heat_map[
+                        centerY
+                        + int(bbox_height / 2)
+                        - 10 : centerY
+                        + int(bbox_height / 2),
+                        centerX - int(bbox_width / 2) : centerX + int(bbox_width / 2),
+                    ] += 1
 
             detections = Detections(
                 xyxy=results[0].boxes.xyxy.cpu().numpy(),
@@ -205,6 +225,22 @@ def video_process(conf: Dict) -> None:
                 frame=frame, detections=detections, labels=labels
             )
             sink.write_frame(frame)
+    # Normalize the heat map
+    heat_map = heat_map / np.max(heat_map)
+
+    # Convert the heat map to color using a colormap
+    heat_map_color = cv2.applyColorMap(
+        (heat_map * 255).astype(np.uint8), cv2.COLORMAP_JET
+    )
+
+    cv2.imwrite(
+        os.path.join(conf["heatmap_savepath"], "heatmap_cars.jpg"), heat_map_color
+    )
+
+    # save heatmap on videos
+    combine_frame_with_heatmap(
+        frame=frame, heatmap=heat_map_color, save_path=conf["heatmap_savepath"]
+    )
 
     # Normalize the heat map
     landmarks_heat_map = landmarks_heat_map.T / np.max(landmarks_heat_map)
@@ -213,12 +249,14 @@ def video_process(conf: Dict) -> None:
         (landmarks_heat_map * 255).astype(np.uint8), cv2.COLORMAP_JET
     )
 
-    cv2.imwrite("cv2_heat.jpg", heat_map_color)
+    cv2.imwrite(
+        os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
+    )
 
     print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
 
 
-def video_outdoor_process(conf: Dict) -> None:
+def video_indoor_process(conf: Dict) -> None:
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
@@ -349,9 +387,4 @@ def video_outdoor_process(conf: Dict) -> None:
                 log(log_info, conf["log_save_path"])
                 break
 
-            # format custom labels
-            labels = [
-                f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
-                for _, confidence, class_id, tracker_id in detections
-            ]
             sink.write_frame(frame)

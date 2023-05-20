@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from supervision.tools.detections import Detections
+from supervision.video.source import get_video_frames_generator
 from yolox.tracker.byte_tracker import STrack
 from onemetric.cv.utils.iou import box_iou_batch
 
@@ -9,6 +10,8 @@ from typing import List, Dict, Tuple
 import uuid
 import os
 import json
+
+import cv2
 
 
 # calculate car center by finding center of bbox
@@ -110,3 +113,15 @@ def extract_line_coordinates(json_path: str):
     line_end = (data["line_end"]["x"], data["line_end"]["y"])
 
     return line_start, line_end
+
+
+def combine_frame_with_heatmap(frame, heatmap, save_path: str):
+    # Resize the heat map to match the frame size
+
+    heat_map_resized = cv2.resize(heatmap, (frame.shape[1], frame.shape[0]))
+
+    # Combine the frame and heat map
+
+    overlay = cv2.addWeighted(frame, 0.7, heat_map_resized, 0.5, 0)
+
+    cv2.imwrite(os.path.join(save_path, "overlay_heatmap.jpg"), overlay)
