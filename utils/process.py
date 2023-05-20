@@ -163,7 +163,10 @@ def video_process(conf: Dict) -> None:
                     log_info["id"].append(tracker_id)
                     log_info["person_car"].append("car")
                     log_info["car_type"].append(None)
-                    log_info["speed"].append(speed[str(tracker_id)])
+                    if str(tracker_id) in speed.keys():
+                        log_info["speed"].append(speed[str(tracker_id)])
+                    else:
+                        log_info["speed"].append(None)
 
             if len(log_info["id"]) > 5:
                 log(log_info, conf["log_save_path"])
