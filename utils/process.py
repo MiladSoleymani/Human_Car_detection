@@ -23,6 +23,7 @@ from utils.utils import (
     match_detections_with_tracks,
     log,
     extract_area_coordinates,
+    extract_line_coordinates,
     calculate_car_center,
     combine_frame_with_heatmap,
 )
@@ -67,6 +68,10 @@ def video_process(conf: Dict) -> None:
     area, distance = extract_area_coordinates(
         conf["area_path"]
     )  # extract area and distance
+
+    lines = extract_line_coordinates(conf["line_path"])  # extract line
+
+    count_dict = {f"line_{i}": 0 for i in range(len(lines))}
 
     in_polygon = {}
     speed = {}
@@ -161,6 +166,19 @@ def video_process(conf: Dict) -> None:
                     result = cv2.pointPolygonTest(
                         np.array(area, np.int32), (int(cx), int(cy)), False
                     )
+
+                    cv2.circle(frame, (cx, cy), 5, (0, 0, 255), -1)
+
+                    for i, line in enumerate(lines):
+                        intersection = cv2.pointPolygonTest(
+                            np.array(line), (cx, cy), False
+                        )
+
+                        print(f"{intersection = }")
+
+                        if intersection == 1:
+                            count_dict[f"line_{i}"] += 1
+
                     if result >= 0:
                         if str(tracker_id) in in_polygon.keys():
                             in_polygon[str(tracker_id)] += 1
@@ -220,6 +238,20 @@ def video_process(conf: Dict) -> None:
                         labels.append(f"#{tracker_id} {CLASS_NAMES_DICT[class_id]}")
 
             cv2.polylines(frame, [np.array(area, np.int32)], True, (15, 228, 10), 3)
+
+            for line in lines:
+                cv2.line(frame, line[0], line[1], (255, 0, 0), 2)
+
+            for key, value in count_dict.items():
+                cv2.putText(
+                    frame,
+                    f"Count_{key}: " + str(value),
+                    (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 0, 255),
+                    2,
+                )
             # annotate and display frame
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels

@@ -108,11 +108,18 @@ def extract_line_coordinates(json_path: str):
     with open(json_path, "r") as file:
         data = json.load(file)
 
-    line_start = (data["line_start"]["x"], data["line_start"]["y"])
+    lines = []
+    for key, value in data.items():
+        lines.append(
+            [
+                [
+                    (value["start"]["x"], value["start"]["y"]),
+                    (value["end"]["x"], value["end"]["y"]),
+                ]
+            ]
+        )
 
-    line_end = (data["line_end"]["x"], data["line_end"]["y"])
-
-    return line_start, line_end
+    return lines
 
 
 def combine_frame_with_heatmap(frame, heatmap, save_path: str):
