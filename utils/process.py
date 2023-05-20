@@ -167,11 +167,11 @@ def video_process(conf: Dict) -> None:
                         np.array(area, np.int32), (int(cx), int(cy)), False
                     )
 
-                    cv2.circle(frame, np.array(cx, cy), 5, (0, 0, 255), -1)
+                    cv2.circle(frame, np.array([cx, cy]), 5, (0, 0, 255), -1)
 
                     for i, line in enumerate(lines):
                         intersection = cv2.pointPolygonTest(
-                            np.array(line), np.array(cx, cy), False
+                            np.array(line), np.array([cx, cy]), False
                         )
 
                         print(f"{intersection = }")
