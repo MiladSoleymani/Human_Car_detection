@@ -171,7 +171,9 @@ def video_process(conf: Dict) -> None:
 
                     for i, line in enumerate(lines):
                         intersection = cv2.pointPolygonTest(
-                            np.array(line), np.array([cx, cy], np.int32), False
+                            np.array(line, np.int32),
+                            np.array([cx, cy], np.int32),
+                            False,
                         )
 
                         print(f"{intersection = }")
