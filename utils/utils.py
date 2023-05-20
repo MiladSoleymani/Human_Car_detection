@@ -112,10 +112,8 @@ def extract_line_coordinates(json_path: str):
     for key, value in data.items():
         lines.append(
             [
-                [
-                    (value["start"]["x"], value["start"]["y"]),
-                    (value["end"]["x"], value["end"]["y"]),
-                ]
+                (value["start"]["x"], value["start"]["y"]),
+                (value["end"]["x"], value["end"]["y"]),
             ]
         )
 
