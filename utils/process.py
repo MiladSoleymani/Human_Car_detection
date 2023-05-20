@@ -82,7 +82,7 @@ def video_process(conf: Dict) -> None:
 
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 200:
+            if idx == 400:
                 break
 
             # face model prediction on single frame
@@ -249,7 +249,7 @@ def video_outdoor_process(conf: Dict) -> None:
         detected_tracker_id = []
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 200:
+            if idx == 400:
                 break
 
             # model prediction on single frame and conversion to supervision Detections
