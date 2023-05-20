@@ -80,18 +80,13 @@ def video_process(conf: Dict) -> None:
             # face model prediction on single frame
             boxes, scores, _, kpts, _ = face_model.detect(frame)
 
-            print(f"{kpts.shape = }")
             x_points = kpts[..., 0::3].astype(int)  # extract x points
             y_points = kpts[..., 1::3].astype(int)  # extract y points
-
-            print(f"{x_points.shape = }")
-            print(f"{y_points.shape = }")
 
             for x, y in zip(x_points, y_points):
                 if x[0] >= 720 or x[1] >= 720 or y[1] >= 1280 or y[0] >= 1280:
                     continue
 
-                print(f"{x}, {y}")
                 landmarks_time_map[x[0], y[0]] += 1  # right eye
                 landmarks_time_map[x[1], y[1]] += 1  # left eye
 
