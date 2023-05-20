@@ -112,10 +112,10 @@ def video_process(conf: Dict) -> None:
             results = model(frame)
 
             xywh = results[0].boxes.xywh.cpu().numpy()
-            confs = results[0].boxes.conf.cpu().numpy()
+            confidences = results[0].boxes.conf.cpu().numpy()
 
-            for conf, cordinate in zip(confs, xywh):
-                if conf > 0.5:
+            for confidence, cordinate in zip(confidences, xywh):
+                if confidence > 0.5:
                     # Accumulate the confidence score in the heat map
                     (centerX, centerY, bbox_width, bbox_height) = cordinate.astype(
                         "int"
