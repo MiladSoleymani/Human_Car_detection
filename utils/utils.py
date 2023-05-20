@@ -8,6 +8,7 @@ from onemetric.cv.utils.iou import box_iou_batch
 from typing import List, Dict, Tuple
 import uuid
 import os
+import json
 
 
 # calculate car center by finding center of bbox
@@ -82,3 +83,30 @@ def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
 def modify_path_for_indoor(path: str):
     file_name, format = os.path.splitext(os.path.basename(path))
     return os.path.join(os.path.dirname(path), f"{file_name}_indoor{format}")
+
+
+def extract_area_coordinates(json_path: str):
+    # Read the JSON file
+    with open(json_path, "r") as file:
+        data = json.load(file)
+
+    # Extract the area coordinates
+    area = data["area"]["coord"]
+
+    coords = [(coord["x"], coord["y"]) for coord in area]  # extract coordinates
+
+    distance = data["area"]["distance"]
+
+    # Print the coordinates
+    return coords, distance
+
+
+def extract_line_coordinates(json_path: str):
+    with open(json_path, "r") as file:
+        data = json.load(file)
+
+    line_start = (data["line_start"]["x"], data["line_start"]["y"])
+
+    line_end = (data["line_end"]["x"], data["line_end"]["y"])
+
+    return line_start, line_end
