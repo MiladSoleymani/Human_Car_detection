@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 
 from utils.process import (
     video_process,
-    video_outdoor_process,
+    video_indoor_process,
 )
 
 from utils.utils import modify_path_for_indoor
@@ -16,6 +16,9 @@ from typing import Dict
 
 
 def run(conf: Dict) -> None:
+    # Create the save path if it's not exists
+    os.makedirs(conf["heatmap_savepath"], exist_ok=True)
+
     if conf["place"] == "outdoor":
         video_process(conf)
     elif conf["place"] == "indoor":
@@ -26,7 +29,7 @@ def run(conf: Dict) -> None:
         conf["video_save_path"] = modify_path_for_indoor(conf["video_save_path"])
         print(f"new path: {conf['video_save_path']}")
 
-        video_outdoor_process(conf)
+        video_indoor_process(conf)
 
 
 def parse_args() -> None:
@@ -86,6 +89,13 @@ def parse_args() -> None:
         "--line_path",
         type=str,
         default="configs/lines.json",
+        help="determine a line area",
+    )
+
+    parser.add_argument(
+        "--heatmap_savepath",
+        type=str,
+        default=os.getcwd(),
         help="determine a line area",
     )
 
