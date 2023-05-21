@@ -19,7 +19,7 @@ class LineCounter:
         """
         self.vector = Vector(start=start, end=end)
         self.tracker_state: Dict[str, bool] = {}
-        self.count = defaultdict(lambda: {"in": 0, "out": 0})
+        self.count_dicts = defaultdict(lambda: {"in": 0, "out": 0})
         self.in_count: int = 0
         self.out_count: int = 0
 
@@ -61,10 +61,10 @@ class LineCounter:
             self.tracker_state[tracker_id] = tracker_state
             if tracker_state:
                 self.in_count += 1
-                self.count[class_id]["in"] += 1
+                self.count_dicts[class_id]["in"] += 1
             else:
                 self.out_count += 1
-                self.count[class_id]["out"] += 1
+                self.count_dicts[class_id]["out"] += 1
 
 
 class LineCounterAnnotator:
@@ -132,7 +132,7 @@ class LineCounterAnnotator:
         )
 
         texts = {"in": [], "out": []}
-        for key, value in line_counter.count:
+        for key, value in line_counter.count_dicts:
             texts["in"].append(f"in_{key}: {value['in']}")
             texts["out"].append(f"in_{key}: {value['out']}")
 
