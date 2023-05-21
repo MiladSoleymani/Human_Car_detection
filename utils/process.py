@@ -71,7 +71,14 @@ def video_process(conf: Dict) -> None:
 
     lines = extract_line_coordinates(conf["line_path"])  # extract line
 
-    count_dict = {f"line_{i}": 0 for i in range(len(lines))}
+    line_counters = {}
+    for i in range(len(lines)):
+        line_counters[i] = {
+            "line_counter": LineCounter(start=lines[i][0], end=lines[i][1]),
+            "line_counter_annotator": LineCounterAnnotator(
+                thickness=4, text_thickness=4, text_scale=2
+            ),
+        }
 
     in_polygon = {}
     speed = {}
@@ -169,19 +176,6 @@ def video_process(conf: Dict) -> None:
 
                     cv2.circle(frame, (int(cx), int(cy)), 5, (0, 0, 255), -1)
 
-                    for i, line in enumerate(lines):
-                        print(f"{line = }")
-                        intersection = cv2.pointPolygonTest(
-                            np.array(line, np.int32),
-                            (int(cx), int(cy)),
-                            False,
-                        )
-
-                        print(f"{intersection = }")
-
-                        if intersection >= 0:
-                            count_dict[f"line_{i}"] += 1
-
                     if result >= 0:
                         if str(tracker_id) in in_polygon.keys():
                             in_polygon[str(tracker_id)] += 1
@@ -242,19 +236,12 @@ def video_process(conf: Dict) -> None:
 
             cv2.polylines(frame, [np.array(area, np.int32)], True, (15, 228, 10), 3)
 
-            for line in lines:
-                cv2.line(frame, line[0], line[1], (255, 0, 0), 2)
-
-            for key, value in count_dict.items():
-                cv2.putText(
-                    frame,
-                    f"Count_{key}: " + str(value),
-                    (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (0, 0, 255),
-                    2,
+            for key, value in line_counters.items():
+                value["line_counter"].update(detections=detections)
+                value["line_counter_annotator"].annotate(
+                    frame=frame, line_counter=value["line_counter"]
                 )
+
             # annotate and display frame
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels
