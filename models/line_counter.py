@@ -1,47 +1,35 @@
-from typing import Dict, Optional
+from typing import Dict
+from collections import defaultdict
 
 import cv2
 import numpy as np
 
-from supervision.detection.core import Detections
 from supervision.draw.color import Color
-from supervision.geometry.core import Point, Rect, Vector
+from supervision.geometry.dataclasses import Point, Rect, Vector
+from supervision.tools.detections import Detections
 
 
-class LineZone:
-    """
-    Count the number of objects that cross a line.
-    """
-
-    def __init__(self, lines):
+class LineCounter:
+    def __init__(self, start: Point, end: Point):
         """
         Initialize a LineCounter object.
 
-        Attributes:
-            start (Point): The starting point of the line.
-            end (Point): The ending point of the line.
-
+        :param start: Point : The starting point of the line.
+        :param end: Point : The ending point of the line.
         """
-        self.vectors = [
-            Vector(
-                start=Point(x=line[0][0], y=line[0][1]),
-                end=Point(x=line[1][0], y=line[1][1]),
-            )
-            for line in lines
-        ]
-        # self.vector = Vector(start=start, end=end)
+        self.vector = Vector(start=start, end=end)
         self.tracker_state: Dict[str, bool] = {}
-        self.count_dict = {i: {"in": 0, "out": 0} for i in range(len(lines))}
+        self.count = defaultdict(lambda: {"in": 0, "out": 0})
+        self.in_count: int = 0
+        self.out_count: int = 0
 
-    def trigger(self, detections: Detections):
+    def update(self, detections: Detections):
         """
         Update the in_count and out_count for the detections that cross the line.
 
-        Attributes:
-            detections (Detections): The detections for which to update the counts.
-
+        :param detections: Detections : The detections for which to update the counts.
         """
-        for xyxy, _, confidence, class_id, tracker_id in detections:
+        for xyxy, confidence, class_id, tracker_id in detections:
             # handle detections with no tracker_id
             if tracker_id is None:
                 continue
@@ -54,16 +42,11 @@ class LineZone:
                 Point(x=x2, y=y1),
                 Point(x=x2, y=y2),
             ]
-
-            triggers = {i: [] for i in range(len(self.vectors))}
-            for i, vector in enumerate(self.vectors):
-                for anchor in anchors:
-                    triggers[i].append(vector.is_in(point=anchor))
+            triggers = [self.vector.is_in(point=anchor) for anchor in anchors]
 
             # detection is partially in and partially out
-            for key, value in triggers.items():
-                if len(set(value)) == 2:
-                    continue
+            if len(set(triggers)) == 2:
+                continue
 
             tracker_state = triggers[0]
             # handle new detection
@@ -78,11 +61,13 @@ class LineZone:
             self.tracker_state[tracker_id] = tracker_state
             if tracker_state:
                 self.in_count += 1
+                self.count[class_id]["in"] += 1
             else:
                 self.out_count += 1
+                self.count[class_id]["out"] += 1
 
 
-class LineZoneAnnotator:
+class LineCounterAnnotator:
     def __init__(
         self,
         thickness: float = 2,
@@ -92,21 +77,17 @@ class LineZoneAnnotator:
         text_scale: float = 0.5,
         text_offset: float = 1.5,
         text_padding: int = 10,
-        custom_in_text: Optional[str] = None,
-        custom_out_text: Optional[str] = None,
     ):
         """
         Initialize the LineCounterAnnotator object with default values.
 
-        Attributes:
-            thickness (float): The thickness of the line that will be drawn.
-            color (Color): The color of the line that will be drawn.
-            text_thickness (float): The thickness of the text that will be drawn.
-            text_color (Color): The color of the text that will be drawn.
-            text_scale (float): The scale of the text that will be drawn.
-            text_offset (float): The offset of the text that will be drawn.
-            text_padding (int): The padding of the text that will be drawn.
-
+        :param thickness: float : The thickness of the line that will be drawn.
+        :param color: Color : The color of the line that will be drawn.
+        :param text_thickness: float : The thickness of the text that will be drawn.
+        :param text_color: Color : The color of the text that will be drawn.
+        :param text_scale: float : The scale of the text that will be drawn.
+        :param text_offset: float : The offset of the text that will be drawn.
+        :param text_padding: int : The padding of the text that will be drawn.
         """
         self.thickness: float = thickness
         self.color: Color = color
@@ -115,20 +96,14 @@ class LineZoneAnnotator:
         self.text_scale: float = text_scale
         self.text_offset: float = text_offset
         self.text_padding: int = text_padding
-        self.custom_in_text: str = custom_in_text
-        self.custom_out_text: str = custom_out_text
 
-    def annotate(self, frame: np.ndarray, line_counter: LineZone) -> np.ndarray:
+    def annotate(self, frame: np.ndarray, line_counter: LineCounter) -> np.ndarray:
         """
         Draws the line on the frame using the line_counter provided.
 
-        Attributes:
-            frame (np.ndarray): The image on which the line will be drawn.
-            line_counter (LineCounter): The line counter that will be used to draw the line.
-
-        Returns:
-            np.ndarray: The image with the line drawn on it.
-
+        :param frame: np.ndarray : The image on which the line will be drawn
+        :param line_counter: LineCounter : The line counter that will be used to draw the line
+        :return: np.ndarray : The image with the line drawn on it
         """
         cv2.line(
             frame,
@@ -156,16 +131,13 @@ class LineZoneAnnotator:
             lineType=cv2.LINE_AA,
         )
 
-        in_text = (
-            f"{self.custom_in_text}: {line_counter.in_count}"
-            if self.custom_in_text is not None
-            else f"in: {line_counter.in_count}"
-        )
-        out_text = (
-            f"{self.custom_out_text}: {line_counter.out_count}"
-            if self.custom_out_text is not None
-            else f"out: {line_counter.out_count}"
-        )
+        texts = {"in": [], "out": []}
+        for key, value in line_counter.count:
+            texts["in"].append(f"in_{key}: {value['in']}")
+            texts["out"].append(f"in_{key}: {value['out']}")
+
+        in_text = "   ".join(texts["in"])
+        out_text = "   ".join(texts["out"])
 
         (in_text_width, in_text_height), _ = cv2.getTextSize(
             in_text, cv2.FONT_HERSHEY_SIMPLEX, self.text_scale, self.text_thickness
@@ -242,4 +214,3 @@ class LineZoneAnnotator:
             self.text_thickness,
             cv2.LINE_AA,
         )
-        return frame
