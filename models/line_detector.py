@@ -22,15 +22,13 @@ class LineZone:
             end (Point): The ending point of the line.
 
         """
-        self.vectors = []
-        for line in lines:
-            self.vectors.append(
-                Vector(
-                    start=Point(x=line[0][0], y=line[0][1]),
-                    end=Point(x=line[1][0], y=line[1][1]),
-                )
+        self.vectors = [
+            Vector(
+                start=Point(x=line[0][0], y=line[0][1]),
+                end=Point(x=line[1][0], y=line[1][1]),
             )
-
+            for line in lines
+        ]
         # self.vector = Vector(start=start, end=end)
         self.tracker_state: Dict[str, bool] = {}
         self.count_dict = {i: {"in": 0, "out": 0} for i in range(len(lines))}
