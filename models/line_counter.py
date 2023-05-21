@@ -132,7 +132,10 @@ class LineCounterAnnotator:
         )
 
         texts = {"in": [], "out": []}
-        for key, value in line_counter.count_dicts.items():
+        for (
+            key,
+            value,
+        ) in line_counter.count_dicts.items():  # Fix Bugs that count for each line
             texts["in"].append(f"in_{key}: {value['in']}")
             texts["out"].append(f"out_{key}: {value['out']}")
 
