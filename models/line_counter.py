@@ -134,7 +134,7 @@ class LineCounterAnnotator:
         texts = {"in": [], "out": []}
         for key, value in line_counter.count_dicts.items():
             texts["in"].append(f"in_{key}: {value['in']}")
-            texts["out"].append(f"in_{key}: {value['out']}")
+            texts["out"].append(f"out_{key}: {value['out']}")
 
         in_text = "   ".join(texts["in"])
         out_text = "   ".join(texts["out"])
