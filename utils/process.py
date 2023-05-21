@@ -81,7 +81,7 @@ def video_process(conf: Dict) -> None:
                 end=Point(x=lines[i][1][0], y=lines[i][1][1]),
             ),
             "line_counter_annotator": LineCounterAnnotator(
-                thickness=4, text_thickness=4, text_scale=2
+                thickness=1, text_thickness=1, text_scale=1
             ),
         }
 
