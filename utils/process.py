@@ -74,9 +74,8 @@ def video_process(conf: Dict) -> None:
 
     lines = extract_line_coordinates(conf["line_path"])  # extract line
 
-    line_counters = {}
-    for i in range(len(lines)):
-        line_counters[i] = {
+    line_counters = {
+        i: {
             "line_counter": LineCounter(
                 start=Point(x=lines[i][0][0], y=lines[i][0][1]),
                 end=Point(x=lines[i][1][0], y=lines[i][1][1]),
@@ -85,7 +84,8 @@ def video_process(conf: Dict) -> None:
                 thickness=1, text_thickness=1, text_scale=1
             ),
         }
-
+        for i in range(len(lines))
+    }
     in_polygon = {}
     speed = {}
     # open target video file
@@ -187,33 +187,26 @@ def video_process(conf: Dict) -> None:
                         )
 
                         if result >= 0:
-                            if str(tracker_id) in in_polygon.keys():
+                            if str(tracker_id) in in_polygon:
                                 in_polygon[str(tracker_id)] += 1
                             else:
                                 in_polygon[str(tracker_id)] = 1
 
-                        elif result < 0:
-                            if str(tracker_id) in in_polygon.keys():
-                                time = in_polygon[str(tracker_id)] / video_info.fps
-                                speed[str(tracker_id)] = (
-                                    value["distance"] / time
-                                ) * 3.6
+                        elif str(tracker_id) in in_polygon:
+                            time = in_polygon[str(tracker_id)] / video_info.fps
+                            speed[str(tracker_id)] = (value["distance"] / time) * 3.6
 
             for _, _, class_id, tracker_id in detections:
                 if class_id == 0 and tracker_id not in log_info["id"]:
-                    log_info["id"].append(tracker_id)
-                    log_info["person_car"].append("person")
-                    log_info["car_type"].append(None)
+                    _extracted_from_video_process_(log_info, tracker_id, "person")
                     log_info["speed"].append(None)
 
                 elif (
                     class_id != 0
                     and tracker_id not in log_info["id"]
-                    and str(tracker_id) in speed.keys()
+                    and str(tracker_id) in speed
                 ):  # need to be test
-                    log_info["id"].append(tracker_id)
-                    log_info["person_car"].append("car")
-                    log_info["car_type"].append(None)
+                    _extracted_from_video_process_(log_info, tracker_id, "car")
                     log_info["speed"].append(speed[str(tracker_id)])
 
             if len(log_info["id"]) > 5:
@@ -237,21 +230,20 @@ def video_process(conf: Dict) -> None:
                     labels.append(
                         f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
                     )
+                elif str(tracker_id) in speed:
+                    speed_tracker_id = speed[str(tracker_id)]
+                    labels.append(
+                        f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {speed_tracker_id:0.2f}km/h"
+                    )
                 else:
-                    if str(tracker_id) in speed.keys():
-                        speed_tracker_id = speed[str(tracker_id)]
-                        labels.append(
-                            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {speed_tracker_id:0.2f}km/h"
-                        )
-                    else:
-                        labels.append(f"#{tracker_id} {CLASS_NAMES_DICT[class_id]}")
+                    labels.append(f"#{tracker_id} {CLASS_NAMES_DICT[class_id]}")
 
             for key, value in poly_coord.items():
                 cv2.polylines(
                     frame, [np.array(value["area"], np.int32)], True, (15, 228, 10), 3
                 )
 
-            for key, value in line_counters.items():
+            for value in line_counters.values():
                 value["line_counter"].update(detections=detections)
                 value["line_counter_annotator"].annotate(
                     frame=frame, line_counter=value["line_counter"]
@@ -291,6 +283,13 @@ def video_process(conf: Dict) -> None:
     )
 
     print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
+
+
+# TODO Rename this here and in `video_process`
+def _extracted_from_video_process_(log_info, tracker_id, arg2):
+    log_info["id"].append(tracker_id)
+    log_info["person_car"].append(arg2)
+    log_info["car_type"].append(None)
 
 
 def video_indoor_process(conf: Dict) -> None:
