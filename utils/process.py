@@ -67,7 +67,8 @@ def video_process(conf: Dict) -> None:
     box_annotator = BoxAnnotator(
         color=ColorPalette(), thickness=1, text_thickness=1, text_scale=0.4
     )
-    area, distance = extract_area_coordinates(
+
+    poly_coord = extract_area_coordinates(
         conf["area_path"]
     )  # extract area and distance
 
@@ -175,22 +176,28 @@ def video_process(conf: Dict) -> None:
             for bbox, confidence, class_id, tracker_id in detections:
                 if class_id != 0:
                     cx, cy = calculate_car_center(bbox)
-                    result = cv2.pointPolygonTest(
-                        np.array(area, np.int32), (int(cx), int(cy)), False
-                    )
 
                     cv2.circle(frame, (int(cx), int(cy)), 5, (0, 0, 255), -1)
 
-                    if result >= 0:
-                        if str(tracker_id) in in_polygon.keys():
-                            in_polygon[str(tracker_id)] += 1
-                        else:
-                            in_polygon[str(tracker_id)] = 1
+                    for key, value in poly_coord.items():
+                        result = cv2.pointPolygonTest(
+                            np.array(value["area"], np.int32),
+                            (int(cx), int(cy)),
+                            False,
+                        )
 
-                    elif result < 0:
-                        if str(tracker_id) in in_polygon.keys():
-                            time = in_polygon[str(tracker_id)] / video_info.fps
-                            speed[str(tracker_id)] = (distance / time) * 3.6
+                        if result >= 0:
+                            if str(tracker_id) in in_polygon.keys():
+                                in_polygon[str(tracker_id)] += 1
+                            else:
+                                in_polygon[str(tracker_id)] = 1
+
+                        elif result < 0:
+                            if str(tracker_id) in in_polygon.keys():
+                                time = in_polygon[str(tracker_id)] / video_info.fps
+                                speed[str(tracker_id)] = (
+                                    value["distance"] / time
+                                ) * 3.6
 
             for _, _, class_id, tracker_id in detections:
                 if class_id == 0 and tracker_id not in log_info["id"]:
@@ -239,7 +246,10 @@ def video_process(conf: Dict) -> None:
                     else:
                         labels.append(f"#{tracker_id} {CLASS_NAMES_DICT[class_id]}")
 
-            cv2.polylines(frame, [np.array(area, np.int32)], True, (15, 228, 10), 3)
+            for key, value in poly_coord.items():
+                cv2.polylines(
+                    frame, [np.array(value["area"], np.int32)], True, (15, 228, 10), 3
+                )
 
             for key, value in line_counters.items():
                 value["line_counter"].update(detections=detections)

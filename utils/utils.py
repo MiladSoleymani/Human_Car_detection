@@ -10,6 +10,8 @@ from typing import List, Dict, Tuple
 import uuid
 import os
 import json
+from collections import defaultdict
+from pprint import pprint
 
 import cv2
 
@@ -93,31 +95,31 @@ def extract_area_coordinates(json_path: str):
     with open(json_path, "r") as file:
         data = json.load(file)
 
+    poly_coord = defaultdict(lambda: {"area": [], "distance": 0})
+
     # Extract the area coordinates
-    area = data["area"]["coord"]
+    for key, value in data.items():
+        poly_coord[key]["distance"] = value["distance"]
+        poly_coord[key]["area"].extend(
+            [(coord["x"], coord["y"]) for coord in value["coord"]]
+        )
 
-    coords = [(coord["x"], coord["y"]) for coord in area]  # extract coordinates
+    pprint(poly_coord)
 
-    distance = data["area"]["distance"]
-
-    # Print the coordinates
-    return coords, distance
+    return poly_coord
 
 
 def extract_line_coordinates(json_path: str):
     with open(json_path, "r") as file:
         data = json.load(file)
 
-    lines = []
-    for key, value in data.items():
-        lines.append(
-            [
-                (value["start"]["x"], value["start"]["y"]),
-                (value["end"]["x"], value["end"]["y"]),
-            ]
-        )
-
-    return lines
+    return [
+        [
+            (value["start"]["x"], value["start"]["y"]),
+            (value["end"]["x"], value["end"]["y"]),
+        ]
+        for key, value in data.items()
+    ]
 
 
 def combine_frame_with_heatmap(frame, heatmap, save_path: str):
