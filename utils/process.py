@@ -7,7 +7,8 @@ from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
 from supervision.video.dataclasses import VideoInfo
 from supervision.video.source import get_video_frames_generator
-from supervision.tools.line_counter import LineCounter, LineCounterAnnotator
+
+# from supervision.tools.line_counter import LineCounter, LineCounterAnnotator
 from supervision.tools.detections import Detections, BoxAnnotator
 from supervision.video.sink import VideoSink
 from yolox.tracker.byte_tracker import BYTETracker
@@ -16,6 +17,7 @@ from dataclasses import dataclass
 from deepface import DeepFace
 
 from models.yolo import load_yolo, YOLOv8_face
+from models.line_counter import LineCounter, LineCounterAnnotator
 
 from utils.utils import (
     find_best_region,
