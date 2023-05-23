@@ -48,8 +48,7 @@ def parse_args() -> None:
         help="setting yolo type that want to use",
     )
 
-    opts = parser.parse_args()
-    return opts
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
