@@ -128,7 +128,8 @@ def label_data(conf):
             label_on_image(conf)
 
     elif os.path.isdir(conf["data_path"]):
-        folder_path = "/path/to/folder/*.{jpg,jpeg,png}"
+        format_of_file = "{jpg,jpeg,png}"
+        folder_path = f"{conf['data_path']}/*.{format_of_file}"
         for file in folder_path:
             print(f"{file = }")
             label_on_image_path(file, conf["yolo_object"], conf["save_path"])
