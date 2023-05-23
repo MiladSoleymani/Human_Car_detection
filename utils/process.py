@@ -208,7 +208,7 @@ def video_process(conf: Dict) -> None:
                     else:
                         log_info[str(tracker_id)]["person_car"] = "car"
                         log_info[str(tracker_id)]["car_type"] = CLASS_NAMES_DICT[
-                            str(class_id)
+                            class_id
                         ]
 
                     log_info[str(tracker_id)]["location"].append(
