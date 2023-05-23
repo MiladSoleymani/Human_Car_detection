@@ -110,6 +110,10 @@ def video_process(conf: Dict) -> None:
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
 
+            print(f"{boxes.shape}")
+            print(f"{scores.shape}")
+            print(f"{class_ids.shape}")
+
             face_detections = Detections(
                 xyxy=boxes,
                 confidence=scores,
