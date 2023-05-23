@@ -187,12 +187,12 @@ def video_process(conf: Dict) -> None:
                         )
 
                         if result >= 0:
-                            if str(tracker_id) in in_polygon:
+                            if str(tracker_id) in in_polygon.keys():
                                 in_polygon[str(tracker_id)] += 1
                             else:
                                 in_polygon[str(tracker_id)] = 1
-                        else:
-                            if str(tracker_id) in in_polygon:
+                        elif result < 0:
+                            if str(tracker_id) in in_polygon.keys():
                                 time = in_polygon[str(tracker_id)] / video_info.fps
                                 speed[str(tracker_id)] = (
                                     value["distance"] / time
@@ -206,7 +206,7 @@ def video_process(conf: Dict) -> None:
                 elif (
                     class_id != 0
                     and tracker_id not in log_info["id"]
-                    and str(tracker_id) in speed
+                    and str(tracker_id) in speed.keys()
                 ):  # need to be test
                     _extracted_from_video_process_(log_info, tracker_id, "car")
                     log_info["speed"].append(speed[str(tracker_id)])
@@ -232,7 +232,7 @@ def video_process(conf: Dict) -> None:
                     labels.append(
                         f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
                     )
-                elif str(tracker_id) in speed:
+                elif str(tracker_id) in speed.keys():
                     speed_tracker_id = speed[str(tracker_id)]
                     labels.append(
                         f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {speed_tracker_id:0.2f}km/h"
