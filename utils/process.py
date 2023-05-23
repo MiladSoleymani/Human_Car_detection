@@ -103,7 +103,7 @@ def video_process(conf: Dict) -> None:
 
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 400:
+            if idx == 200:
                 break
 
             # face model prediction on single frame
@@ -191,10 +191,12 @@ def video_process(conf: Dict) -> None:
                                 in_polygon[str(tracker_id)] += 1
                             else:
                                 in_polygon[str(tracker_id)] = 1
-
-                        elif str(tracker_id) in in_polygon:
-                            time = in_polygon[str(tracker_id)] / video_info.fps
-                            speed[str(tracker_id)] = (value["distance"] / time) * 3.6
+                        else:
+                            if str(tracker_id) in in_polygon:
+                                time = in_polygon[str(tracker_id)] / video_info.fps
+                                speed[str(tracker_id)] = (
+                                    value["distance"] / time
+                                ) * 3.6
 
             for _, _, class_id, tracker_id in detections:
                 if class_id == 0 and tracker_id not in log_info["id"]:
