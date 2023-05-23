@@ -57,6 +57,7 @@ def video_process(conf: Dict) -> None:
 
     # create BYTETracker instance
     byte_tracker = BYTETracker(BYTETrackerArgs())
+    face_byte_tracker = BYTETracker(BYTETrackerArgs())
     # create VideoInfo instance
     video_info = VideoInfo.from_video_path(conf["video_target_path"])
     print("\nvideo Info : ", end="")
@@ -81,7 +82,7 @@ def video_process(conf: Dict) -> None:
                 end=Point(x=lines[i][1][0], y=lines[i][1][1]),
             ),
             "line_counter_annotator": LineCounterAnnotator(
-                thickness=1, text_thickness=1, text_scale=1
+                thickness=1, text_thickness=1, text_scale=0.4
             ),
         }
         for i in range(len(lines))
@@ -107,7 +108,29 @@ def video_process(conf: Dict) -> None:
                 break
 
             # face model prediction on single frame
-            boxes, scores, _, kpts, _ = face_model.detect(frame)
+            boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
+
+            face_detections = Detections(
+                xyxy=boxes,
+                confidence=scores,
+                class_id=class_ids.astype(int),
+            )
+
+            face_tracks = face_byte_tracker.update(
+                output_results=detections2boxes(detections=face_detections),
+                img_info=frame.shape,
+                img_size=frame.shape,
+            )
+
+            face_tracker_id = match_detections_with_tracks(
+                detections=face_detections, tracks=face_tracks
+            )
+
+            face_detections.tracker_id = np.array(face_tracker_id)
+
+            face_labels = []
+            for bbox, confidence, class_id, tracker_id in face_detections:
+                face_labels.append(f"#{tracker_id}")
 
             x_points = kpts[..., 0::3].astype(int)  # extract x points
             y_points = kpts[..., 1::3].astype(int)  # extract y points
@@ -255,6 +278,11 @@ def video_process(conf: Dict) -> None:
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels
             )
+
+            frame = box_annotator.annotate(
+                frame=frame, detections=face_detections, labels=face_labels
+            )
+
             sink.write_frame(frame)
     # Normalize the heat map
     heat_map = heat_map / np.max(heat_map)
