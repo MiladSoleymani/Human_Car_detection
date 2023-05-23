@@ -105,6 +105,8 @@ def video_process(conf: Dict) -> None:
                 "location": [],
             }
         )
+
+        log_eye_info = defaultdict(lambda: {"eye_loc": [], "eye_detected_count": 0})
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
             if idx == 200:
@@ -147,6 +149,11 @@ def video_process(conf: Dict) -> None:
                     dtype=bool,
                 )
                 face_detections.filter(mask=mask, inplace=True)
+
+                for bbox, confidence, class_id, tracker_id in face_detections:
+                    cx, cy = calculate_car_center(bbox)
+                    log_eye_info[tracker_id]["eye_loc"].append(str(cx, cy))
+                    log_eye_info[tracker_id]["eye_detected_count"] += 1
 
                 face_labels = []
                 for bbox, confidence, class_id, tracker_id in face_detections:
@@ -252,11 +259,11 @@ def video_process(conf: Dict) -> None:
                         ]
 
                     log_info[str(tracker_id)]["location"].append(
-                        calculate_down_center(bbox)
+                        str(calculate_down_center(bbox))
                     )
                 else:
                     log_info[str(tracker_id)]["location"].append(
-                        calculate_down_center(bbox)
+                        str(calculate_down_center(bbox))
                     )
 
                     if class_id != 0 and str(tracker_id) in speed.keys():
