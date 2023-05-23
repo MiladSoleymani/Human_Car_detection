@@ -123,8 +123,7 @@ def label_data(conf):
     zip_folder(
         conf["save_path"],
         zip_path=os.path.join(
-            os.path.dirname(
-                conf["save_path"], f"{os.path.basename(conf['save_path'])}.zip"
-            )
+            os.path.dirname(conf["save_path"]),
+            f"{os.path.basename(conf['save_path'])}.zip",
         ),
     )
