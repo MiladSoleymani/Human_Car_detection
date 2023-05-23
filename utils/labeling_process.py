@@ -32,7 +32,7 @@ def label_on_video(conf):
             break
 
         results = model(frame)
-        xyxy = results[0].boxes.xyxy.cpu().numpy()
+        xywh = results[0].boxes.xywh.cpu().numpy()
         class_id = results[0].boxes.cls.cpu().numpy().astype(int)
 
         output_filename = os.path.join(save_path, f"frame_{idx}_.jpg")
@@ -41,10 +41,10 @@ def label_on_video(conf):
         # Create a .txt file for the current frame
         with open(os.path.join(save_path, f"frame_{idx}_.txt"), "w") as txt_file:
             txt_file.write(f"YOLO_OBB\n")
-            for idx, data in enumerate(zip(xyxy, class_id)):
+            for idx, data in enumerate(zip(xywh, class_id)):
                 bbox, output_class = data
                 # Write the object's information to the .txt file in the format expected by labelimg
-                if idx == (xyxy.shape[0] - 1):
+                if idx == (xywh.shape[0] - 1):
                     txt_file.write(
                         f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
                     )
@@ -64,7 +64,7 @@ def label_on_image(conf):
             file.write(item + "\n")
 
     results = model(conf["data_path"])
-    xyxy = results[0].boxes.xyxy.cpu().numpy()
+    xywh = results[0].boxes.xywh.cpu().numpy()
     class_id = results[0].boxes.cls.cpu().numpy().astype(int)
 
     filename, _ = extract_folder_name(conf["data_path"])  # extract filename, extension
@@ -72,10 +72,10 @@ def label_on_image(conf):
 
     with open(os.path.join(save_path, f"{filename}.txt"), "w") as txt_file:
         txt_file.write(f"YOLO_OBB\n")
-        for idx, data in enumerate(zip(xyxy, class_id)):
+        for idx, data in enumerate(zip(xywh, class_id)):
             bbox, output_class = data
             # Write the object's information to the .txt file in the format expected by labelimg
-            if idx == (xyxy.shape[0] - 1):
+            if idx == (xywh.shape[0] - 1):
                 txt_file.write(
                     f"{output_class} {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
                 )
@@ -92,7 +92,7 @@ def label_on_image_path(image_path: str, model_config_path: str, save_path: str)
             file.write(item + "\n")
 
     results = model(image_path)
-    xyxy = results[0].boxes.xyxy.cpu().numpy()
+    xywh = results[0].boxes.xywh.cpu().numpy()
     class_id = results[0].boxes.cls.cpu().numpy().astype(int)
 
     filename, _ = extract_folder_name(image_path)  # extract filename, extension
@@ -100,10 +100,10 @@ def label_on_image_path(image_path: str, model_config_path: str, save_path: str)
 
     with open(os.path.join(save_path, f"{filename}.txt"), "w") as txt_file:
         txt_file.write(f"YOLO_OBB\n")
-        for idx, data in enumerate(zip(xyxy, class_id)):
+        for idx, data in enumerate(zip(xywh, class_id)):
             bbox, output_class = data
             # Write the object's information to the .txt file in the format expected by labelimg
-            if idx == (xyxy.shape[0] - 1):
+            if idx == (xywh.shape[0] - 1):
                 txt_file.write(
                     f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
                 )
