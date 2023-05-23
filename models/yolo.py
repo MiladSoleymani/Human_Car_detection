@@ -120,6 +120,17 @@ class YOLOv8_face:
 
         return det_bboxes, det_conf, det_classid, landmarks, eyes
 
+    def convert_xywh_to_xyxy(self, bboxes):
+        xyxy = []
+        for x, y, w, h in bboxes:
+            x_min = x - (w / 2)
+            y_min = y - (h / 2)
+            x_max = x + (w / 2)
+            y_max = y + (h / 2)
+            xyxy.append([x_min, y_min, x_max, y_max])
+
+        return np.array(xyxy)
+
     def post_process(self, preds, scale_h, scale_w, padh, padw):
         bboxes, scores, landmarks = [], [], []
         for i, pred in enumerate(preds):

@@ -109,6 +109,7 @@ def video_process(conf: Dict) -> None:
 
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
+            face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
 
             # print(f"{boxes.shape}")
             # print(f"{scores.shape}")
@@ -117,7 +118,7 @@ def video_process(conf: Dict) -> None:
             if boxes.size != 0:  # check if sth is detected or not
                 print("\ntracking the faces")
                 face_detections = Detections(
-                    xywh=boxes,
+                    xyxy=face_xyxy,
                     confidence=scores,
                     class_id=class_ids.astype(int),
                 )
