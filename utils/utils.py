@@ -13,6 +13,8 @@ import json
 from collections import defaultdict
 from pprint import pprint
 
+import zipfile
+
 import cv2
 
 
@@ -132,3 +134,16 @@ def combine_frame_with_heatmap(frame, heatmap, save_path: str):
     overlay = cv2.addWeighted(frame, 0.7, heat_map_resized, 0.5, 0)
 
     cv2.imwrite(os.path.join(save_path, "overlay_heatmap.jpg"), overlay)
+
+
+def extract_folder_name(path: str):
+    return os.splitext(os.path.basename(path))
+
+
+def zip_folder(folder_path, zip_path):
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, folder_path)
+                zipf.write(file_path, arcname)
