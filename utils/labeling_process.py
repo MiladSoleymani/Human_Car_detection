@@ -46,11 +46,11 @@ def label_on_video(conf):
                 # Write the object's information to the .txt file in the format expected by labelimg
                 if idx == (xywh.shape[0] - 1):
                     txt_file.write(
-                        f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
+                        f"{output_class} {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
                     )
                 else:
                     txt_file.write(
-                        f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000\n"
+                        f"{output_class} {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000\n"
                     )
 
 
@@ -105,11 +105,11 @@ def label_on_image_path(image_path: str, model_config_path: str, save_path: str)
             # Write the object's information to the .txt file in the format expected by labelimg
             if idx == (xywh.shape[0] - 1):
                 txt_file.write(
-                    f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
+                    f"{output_class} {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
                 )
             else:
                 txt_file.write(
-                    f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000\n"
+                    f"{output_class} {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000\n"
                 )
 
 
