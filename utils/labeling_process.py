@@ -22,6 +22,10 @@ def label_on_video(conf):
 
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
 
+    with open(os.path.join(save_path, "classes.txt"), "w") as file:
+        for item in CLASS_NAMES_DICT.values():
+            file.write(item + "\n")
+
     # loop over video frames
     for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
         if idx == 3:
