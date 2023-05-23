@@ -60,9 +60,12 @@ def match_detections_with_tracks(
 
 
 def log(info: Dict, log_save_path: str) -> None:
-    info = pd.DataFrame(data=info)
-    name = "log_car_" + str(uuid.uuid4())[:13] + ".csv"
-    info.to_csv(os.path.join(log_save_path, name), index=False)
+    # info = pd.DataFrame(data=info)
+    name = "log_car_" + str(uuid.uuid4())[:13] + ".json"
+    # info.to_csv(os.path.join(log_save_path, name), index=False)
+
+    with open(os.path.join(log_save_path, name), "w") as file:
+        json.dump(info, file)
 
 
 def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
@@ -113,7 +116,6 @@ def extract_area_coordinates(json_path: str):
         )
 
     pprint(poly_coord)
-
     return poly_coord
 
 

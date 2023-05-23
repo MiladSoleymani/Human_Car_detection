@@ -248,19 +248,19 @@ def video_process(conf: Dict) -> None:
                     else:
                         log_info[str(tracker_id)]["person_car"] = "car"
                         log_info[str(tracker_id)]["car_type"] = CLASS_NAMES_DICT[
-                            str(class_id)
+                            class_id
                         ]
 
                     log_info[str(tracker_id)]["location"].append(
-                        calculate_down_center(bbox)
+                        str(calculate_down_center(bbox))
                     )
                 else:
                     log_info[str(tracker_id)]["location"].append(
-                        calculate_down_center(bbox)
+                        str(calculate_down_center(bbox))
                     )
 
                     if class_id != 0 and str(tracker_id) in speed.keys():
-                        log_info[str(tracker_id)]["speed"] = speed[str(tracker_id)]
+                        log_info[str(tracker_id)]["speed"] = str(speed[str(tracker_id)])
 
             if len(log_info.keys()) > 5:
                 print(log_info)
