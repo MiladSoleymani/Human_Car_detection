@@ -104,7 +104,7 @@ def video_process(conf: Dict) -> None:
 
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 200:
+            if idx == 20:
                 break
 
             # face model prediction on single frame
@@ -115,6 +115,7 @@ def video_process(conf: Dict) -> None:
             # print(f"{class_ids.shape}")
 
             if boxes.size != 0:  # check if sth is detected or not
+                print("\ntracking the faces")
                 face_detections = Detections(
                     xyxy=boxes,
                     confidence=scores,
@@ -131,6 +132,7 @@ def video_process(conf: Dict) -> None:
                     detections=face_detections, tracks=face_tracks
                 )
 
+                print(f"\n{face_tracker_id = }")
                 face_detections.tracker_id = np.array(face_tracker_id)
 
                 mask = np.array(
