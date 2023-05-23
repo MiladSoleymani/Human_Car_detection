@@ -132,7 +132,7 @@ def video_process(conf: Dict) -> None:
                 [tracker_id is not None for tracker_id in face_detections.tracker_id],
                 dtype=bool,
             )
-            detections.filter(mask=mask, inplace=True)
+            face_detections.filter(mask=mask, inplace=True)
 
             face_labels = []
             for bbox, confidence, class_id, tracker_id in face_detections:
