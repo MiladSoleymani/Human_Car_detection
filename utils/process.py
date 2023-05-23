@@ -110,37 +110,41 @@ def video_process(conf: Dict) -> None:
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
 
-            print(f"{boxes.shape}")
-            print(f"{scores.shape}")
-            print(f"{class_ids.shape}")
+            # print(f"{boxes.shape}")
+            # print(f"{scores.shape}")
+            # print(f"{class_ids.shape}")
 
-            face_detections = Detections(
-                xyxy=boxes,
-                confidence=scores,
-                class_id=class_ids.astype(int),
-            )
+            if boxes.size != 0:  # check if sth is detected or not
+                face_detections = Detections(
+                    xyxy=boxes,
+                    confidence=scores,
+                    class_id=class_ids.astype(int),
+                )
 
-            face_tracks = face_byte_tracker.update(
-                output_results=detections2boxes(detections=face_detections),
-                img_info=frame.shape,
-                img_size=frame.shape,
-            )
+                face_tracks = face_byte_tracker.update(
+                    output_results=detections2boxes(detections=face_detections),
+                    img_info=frame.shape,
+                    img_size=frame.shape,
+                )
 
-            face_tracker_id = match_detections_with_tracks(
-                detections=face_detections, tracks=face_tracks
-            )
+                face_tracker_id = match_detections_with_tracks(
+                    detections=face_detections, tracks=face_tracks
+                )
 
-            face_detections.tracker_id = np.array(face_tracker_id)
+                face_detections.tracker_id = np.array(face_tracker_id)
 
-            mask = np.array(
-                [tracker_id is not None for tracker_id in face_detections.tracker_id],
-                dtype=bool,
-            )
-            face_detections.filter(mask=mask, inplace=True)
+                mask = np.array(
+                    [
+                        tracker_id is not None
+                        for tracker_id in face_detections.tracker_id
+                    ],
+                    dtype=bool,
+                )
+                face_detections.filter(mask=mask, inplace=True)
 
-            face_labels = []
-            for bbox, confidence, class_id, tracker_id in face_detections:
-                face_labels.append(f"#{tracker_id}")
+                face_labels = []
+                for bbox, confidence, class_id, tracker_id in face_detections:
+                    face_labels.append(f"#{tracker_id}")
 
             x_points = kpts[..., 0::3].astype(int)  # extract x points
             y_points = kpts[..., 1::3].astype(int)  # extract y points
