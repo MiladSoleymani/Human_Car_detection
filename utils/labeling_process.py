@@ -130,6 +130,7 @@ def label_data(conf):
     elif os.path.isdir(conf["data_path"]):
         folder_path = "/path/to/folder/*.{jpg,jpeg,png}"
         for file in folder_path:
+            print(f"{file = }")
             label_on_image_path(file, conf["yolo_object"], conf["save_path"])
 
     zip_folder(
