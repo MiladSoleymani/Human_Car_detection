@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import os
+from collections import defaultdict
 
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
