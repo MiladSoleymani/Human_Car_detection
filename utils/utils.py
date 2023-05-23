@@ -137,7 +137,7 @@ def combine_frame_with_heatmap(frame, heatmap, save_path: str):
 
 
 def extract_folder_name(path: str):
-    return os.splitext(os.path.basename(path))
+    return os.path.splitext(os.path.basename(path))
 
 
 def zip_folder(folder_path, zip_path):
