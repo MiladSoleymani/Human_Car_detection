@@ -55,6 +55,10 @@ def label_on_image(conf):
 
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
 
+    with open(os.path.join(save_path, "classes.txt"), "w") as file:
+        for item in CLASS_NAMES_DICT.values():
+            file.write(item + "\n")
+
     results = model(conf["data_path"])
     xyxy = results[0].boxes.xyxy.cpu().numpy()
     class_id = results[0].boxes.cls.cpu().numpy().astype(int)
@@ -69,16 +73,20 @@ def label_on_image(conf):
             # Write the object's information to the .txt file in the format expected by labelimg
             if idx == (xyxy.shape[0] - 1):
                 txt_file.write(
-                    f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
+                    f"{output_class} {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000"
                 )
             else:
                 txt_file.write(
-                    f"0 {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000\n"
+                    f"{output_class} {bbox[0]:0.6f} {bbox[1]:0.6f} {bbox[2]:0.6f} {bbox[3]:0.6f} -90.000000\n"
                 )
 
 
 def label_on_image_path(image_path: str, model_config_path: str, save_path: str):
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(model_config_path)
+    with open(os.path.join(save_path, "classes.txt"), "w") as file:
+        for item in CLASS_NAMES_DICT.values():
+            file.write(item + "\n")
+
     results = model(image_path)
     xyxy = results[0].boxes.xyxy.cpu().numpy()
     class_id = results[0].boxes.cls.cpu().numpy().astype(int)
