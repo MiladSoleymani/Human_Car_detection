@@ -289,9 +289,9 @@ def video_process(conf: Dict) -> None:
                 )
 
             # annotate and display frame
-            frame = box_annotator.annotate(
-                frame=frame, detections=detections, labels=labels
-            )
+            # frame = box_annotator.annotate(
+            #     frame=frame, detections=detections, labels=labels
+            # )
 
             frame = box_annotator.annotate(
                 frame=frame, detections=face_detections, labels=face_labels
