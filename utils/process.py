@@ -117,7 +117,7 @@ def video_process(conf: Dict) -> None:
             if boxes.size != 0:  # check if sth is detected or not
                 print("\ntracking the faces")
                 face_detections = Detections(
-                    xyxy=boxes,
+                    xywh=boxes,
                     confidence=scores,
                     class_id=class_ids.astype(int),
                 )
