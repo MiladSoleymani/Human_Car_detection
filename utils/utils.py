@@ -24,6 +24,12 @@ def calculate_car_center(bbox):
     return ((x1 + x2) // 2, (y1 + y2) // 2)
 
 
+# calculate car center by finding center of bbox
+def calculate_down_center(bbox):
+    x1, y1, x2, y2 = bbox
+    return ((x1 + x2) // 2, y2)
+
+
 # converts Detections into format that can be consumed by match_detections_with_tracks function
 def detections2boxes(detections: Detections) -> np.ndarray:
     return np.hstack((detections.xyxy, detections.confidence[:, np.newaxis]))
@@ -126,11 +132,9 @@ def extract_line_coordinates(json_path: str):
 
 def combine_frame_with_heatmap(frame, heatmap, save_path: str):
     # Resize the heat map to match the frame size
-
     heat_map_resized = cv2.resize(heatmap, (frame.shape[1], frame.shape[0]))
 
     # Combine the frame and heat map
-
     overlay = cv2.addWeighted(frame, 0.7, heat_map_resized, 0.5, 0)
 
     cv2.imwrite(os.path.join(save_path, "overlay_heatmap.jpg"), overlay)

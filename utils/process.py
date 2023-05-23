@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import os
+from collections import defaultdict
 
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
@@ -27,6 +28,7 @@ from utils.utils import (
     extract_area_coordinates,
     extract_line_coordinates,
     calculate_car_center,
+    calculate_down_center,
     combine_frame_with_heatmap,
 )
 
@@ -94,16 +96,17 @@ def video_process(conf: Dict) -> None:
         landmarks_heat_map = np.zeros((video_info.height, video_info.width))
         heat_map = np.zeros((video_info.height, video_info.width), dtype=np.float32)
 
-        log_info = {
-            "id": [],
-            "person_car": [],
-            "car_type": [],
-            "speed": [],
-        }
-
+        log_info = defaultdict(
+            lambda: {
+                "person_car": None,
+                "speed": None,
+                "car_type": None,
+                "location": [],
+            }
+        )
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 500:
+            if idx == 200:
                 break
 
             # face model prediction on single frame
@@ -198,28 +201,40 @@ def video_process(conf: Dict) -> None:
                                     value["distance"] / time
                                 ) * 3.6
 
-            for _, _, class_id, tracker_id in detections:
-                if class_id == 0 and tracker_id not in log_info["id"]:
-                    _extracted_from_video_process_(log_info, tracker_id, "person")
-                    log_info["speed"].append(None)
+            for bbox, _, class_id, tracker_id in detections:
+                if str(tracker_id) not in log_info.keys():
+                    if class_id == 0:
+                        log_info[str(tracker_id)]["person_car"] = "person"
+                    else:
+                        log_info[str(tracker_id)]["person_car"] = "car"
+                        log_info[str(tracker_id)]["car_type"] = CLASS_NAMES_DICT[
+                            str(class_id)
+                        ]
 
-                elif (
-                    class_id != 0
-                    and tracker_id not in log_info["id"]
-                    and str(tracker_id) in speed.keys()
-                ):  # need to be test
-                    _extracted_from_video_process_(log_info, tracker_id, "car")
-                    log_info["speed"].append(speed[str(tracker_id)])
+                    log_info[str(tracker_id)]["location"].append(
+                        calculate_down_center(bbox)
+                    )
+                else:
+                    log_info[str(tracker_id)]["location"].append(
+                        calculate_down_center(bbox)
+                    )
 
-            if len(log_info["id"]) > 5:
+                    if class_id != 0 and str(tracker_id) in speed.keys():
+                        log_info[str(tracker_id)]["speed"] = speed[str(tracker_id)]
+
+            if len(log_info.keys()) > 5:
+                print(log_info)
                 log(log_info, conf["log_save_path"])
 
-                log_info = {
-                    "id": [],
-                    "person_car": [],
-                    "car_type": [],
-                    "speed": [],
-                }
+                log_info = defaultdict(
+                    lambda: {
+                        "person_car": None,
+                        "speed": None,
+                        "car_type": None,
+                        "location": [],
+                    }
+                )
+                break
 
             if idx == (video_info.total_frames - 1):
                 log(log_info, conf["log_save_path"])
