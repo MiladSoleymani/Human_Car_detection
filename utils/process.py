@@ -251,16 +251,12 @@ def video_process(conf: Dict) -> None:
                                 ) * 3.6
 
             for bbox, _, class_id, tracker_id in detections:
-                print(f"{str(tracker_id) = }")
-                print(f"{log_info.keys() = }")
-
                 if str(tracker_id) not in log_info.keys():
                     if class_id == 0:
                         log_info[str(tracker_id)]["person_car"] = "person"
                     else:
                         log_info[str(tracker_id)]["person_car"] = "car"
 
-                        print(f"{str(class_id) = }")
                         log_info[str(tracker_id)]["car_type"] = CLASS_NAMES_DICT[
                             class_id
                         ]
