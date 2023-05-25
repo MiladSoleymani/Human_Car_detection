@@ -289,7 +289,7 @@ def video_process(conf: Dict) -> None:
 
             if idx == (video_info.total_frames - 1):
                 log(log_info, conf["log_save_path"])
-                break
+                # break
 
             # format custom labels
             labels = []
