@@ -153,7 +153,7 @@ def video_process(conf: Dict) -> None:
 
                 for bbox, confidence, class_id, tracker_id in face_detections:
                     cx, cy = calculate_car_center(bbox)
-                    log_eye_info[tracker_id]["eye_loc"].append(str(cx, cy))
+                    log_eye_info[tracker_id]["eye_loc"].append((str(cx), str(cy)))
                     log_eye_info[tracker_id]["eye_detected_count"] += 1
 
                 face_labels = []
