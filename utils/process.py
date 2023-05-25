@@ -285,7 +285,7 @@ def video_process(conf: Dict) -> None:
                         "location": [],
                     }
                 )
-                break
+                # break
 
             if idx == (video_info.total_frames - 1):
                 log(log_info, conf["log_save_path"])
