@@ -50,6 +50,7 @@ def video_process(conf: Dict) -> None:
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
+    print(f"{CLASS_NAMES_DICT.keys()}")
     face_model = YOLOv8_face(conf["yolo_face"])
 
     print(
