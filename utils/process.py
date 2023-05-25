@@ -79,6 +79,8 @@ def video_process(conf: Dict) -> None:
 
     lines = extract_line_coordinates(conf["line_path"])  # extract line
 
+    print(f"{len(lines) = }")
+
     line_counters = {
         i: {
             "line_counter": LineCounter(
@@ -114,7 +116,7 @@ def video_process(conf: Dict) -> None:
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 200:
+            if idx == 500:
                 break
 
             # face model prediction on single frame
