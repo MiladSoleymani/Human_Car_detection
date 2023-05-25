@@ -164,6 +164,10 @@ def video_process(conf: Dict) -> None:
                 for bbox, confidence, class_id, tracker_id in face_detections:
                     face_labels.append(f"#{tracker_id}")
 
+                frame = box_annotator.annotate(
+                    frame=frame, detections=face_detections, labels=face_labels
+                )
+
             x_points = kpts[..., 0::3].astype(int)  # extract x points
             y_points = kpts[..., 1::3].astype(int)  # extract y points
 
@@ -320,12 +324,8 @@ def video_process(conf: Dict) -> None:
                 )
 
             # annotate and display frame
-            # frame = box_annotator.annotate(
-            #     frame=frame, detections=detections, labels=labels
-            # )
-
             frame = box_annotator.annotate(
-                frame=frame, detections=face_detections, labels=face_labels
+                frame=frame, detections=detections, labels=labels
             )
 
             sink.write_frame(frame)
