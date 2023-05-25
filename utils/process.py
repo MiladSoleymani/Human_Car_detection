@@ -108,7 +108,9 @@ def video_process(conf: Dict) -> None:
             }
         )
 
-        log_eye_info = defaultdict(lambda: {"eye_loc": [], "eye_detected_count": 0})
+        log_eye_info = defaultdict(
+            lambda: {"eye_loc": [], "eye_detected_count": 0, "eye_time_eta": 0}
+        )
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
@@ -354,6 +356,9 @@ def video_process(conf: Dict) -> None:
     cv2.imwrite(
         os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
     )
+
+    for key, value in log_eye_info.items():
+        value["eye_time_eta"] = value["eye_detected_count"] / video_info.fps
 
     with open(os.path.join(conf["log_save_path"], "eye_log_data.json"), "w") as fout:
         json.dump(log_eye_info, fout)
