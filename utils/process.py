@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import os
+import json
 from collections import defaultdict
 
 from supervision.draw.color import ColorPalette
@@ -350,6 +351,9 @@ def video_process(conf: Dict) -> None:
     cv2.imwrite(
         os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
     )
+
+    with open(os.path.join(conf["log_save_path"], "eye_log_data.json"), "w") as fout:
+        json.dump(log_eye_info, fout)
 
     print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
 
