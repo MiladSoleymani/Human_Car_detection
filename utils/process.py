@@ -258,6 +258,8 @@ def video_process(conf: Dict) -> None:
                         log_info[str(tracker_id)]["person_car"] = "person"
                     else:
                         log_info[str(tracker_id)]["person_car"] = "car"
+
+                        print(f"{str(class_id) = }")
                         log_info[str(tracker_id)]["car_type"] = CLASS_NAMES_DICT[
                             str(class_id)
                         ]
