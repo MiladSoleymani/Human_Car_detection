@@ -109,6 +109,7 @@ def video_process(conf: Dict) -> None:
         )
 
         log_eye_info = defaultdict(lambda: {"eye_loc": [], "eye_detected_count": 0})
+        print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
             if idx == 200:
