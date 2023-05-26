@@ -33,7 +33,7 @@ from utils.utils import (
     combine_frame_with_heatmap,
 )
 
-from typing import Tuple, Dict
+from typing import Dict
 
 
 @dataclass(frozen=True)
@@ -173,7 +173,6 @@ def video_process(conf: Dict) -> None:
                         str((center[0], center[1]))
                     )
 
-                    print(log_eye_info)
                     log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
 
                     landmarks_time_map[x[0], y[0]] += 1  # right eye
@@ -199,7 +198,7 @@ def video_process(conf: Dict) -> None:
 
                     log_eye_info = defaultdict(
                         lambda: {
-                            "eye_detected_count": None,
+                            "eye_detected_count": 0,
                             "eye_time_eta": None,
                             "center_eye_loc": [],
                         }
