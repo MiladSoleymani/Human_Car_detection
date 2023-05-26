@@ -49,6 +49,7 @@ class LineCounter:
                 print("Sth is intersected")
                 print("-" * 100)
                 print("\n")
+                self.count_dicts[class_id]["out"] += 1
 
             anchors = [
                 Point(x=x1, y=y1),
@@ -76,8 +77,10 @@ class LineCounter:
             if tracker_state:
                 print("in")
             else:
-                self.out_count += 1
-                self.count_dicts[class_id]["out"] += 1
+                # self.out_count += 1
+                # self.count_dicts[class_id]["out"] += 1
+
+                print("out")
 
     @staticmethod
     def check_intersection(point, line_start, line_end):
