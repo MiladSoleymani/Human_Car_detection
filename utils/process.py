@@ -112,7 +112,7 @@ def video_process(conf: Dict) -> None:
 
         log_eye_info = defaultdict(
             lambda: {
-                "eye_detected_count": None,
+                "eye_detected_count": 0,
                 "eye_time_eta": None,
                 "center_eye_loc": [],
             }
