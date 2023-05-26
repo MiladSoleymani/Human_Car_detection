@@ -159,7 +159,6 @@ def video_process(conf: Dict) -> None:
                 )
                 face_detections.filter(mask=mask, inplace=True)
 
-                detection_ids = []
                 for face_detections, x, y in zip(face_detections, x_points, y_points):
                     if (
                         x[0] >= video_info.height
@@ -182,18 +181,17 @@ def video_process(conf: Dict) -> None:
                     landmarks_time_map[x[1], y[1]] += 1  # left eye
                     landmarks_heat_map[x[0] : x[0] + 2, y[0] : y[0] + 2] += 1
                     landmarks_heat_map[x[1] : x[1] + 2, y[1] : y[1] + 2] += 1
-                    detection_ids.append(str(tracker_id))
 
                 for detection_id in log_eye_info.keys():
-                    if detection_id not in detection_ids:
-                        log_eye_info[str(tracker_id)]["eye_time_eta"] = (
-                            log_eye_info[str(tracker_id)]["eye_detected_count"]
+                    if log_eye_info[str(detection_id)]["eye_time_eta"] == None:
+                        log_eye_info[str(detection_id)]["eye_time_eta"] = (
+                            log_eye_info[str(detection_id)]["eye_detected_count"]
                             / video_info.fps
                         )
 
                 count = 0
                 for detection_id in log_eye_info.keys():
-                    if log_eye_info[str(tracker_id)]["eye_time_eta"] != None:
+                    if log_eye_info[str(detection_id)]["eye_time_eta"] != None:
                         count += 1
 
                 if count > conf["log_save_steps"]:
