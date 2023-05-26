@@ -97,7 +97,6 @@ def video_process(conf: Dict) -> None:
     speed = {}
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
-        landmarks_time_map = np.zeros((video_info.height, video_info.width))
         landmarks_heat_map = np.zeros((video_info.height, video_info.width))
         heat_map = np.zeros((video_info.height, video_info.width), dtype=np.float32)
 
@@ -177,10 +176,10 @@ def video_process(conf: Dict) -> None:
 
                     log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
 
-                    landmarks_time_map[x[0], y[0]] += 1  # right eye
-                    landmarks_time_map[x[1], y[1]] += 1  # left eye
-                    landmarks_heat_map[x[0] : x[0] + 2, y[0] : y[0] + 2] += 1
-                    landmarks_heat_map[x[1] : x[1] + 2, y[1] : y[1] + 2] += 1
+                    landmarks_heat_map[
+                        int(center[1]) : int(center[1]) + 2,
+                        int(center[0]) : int(center[0]) + 2,
+                    ] += 1
 
                 for detection_id in log_eye_info.keys():
                     if log_eye_info[str(detection_id)]["eye_time_eta"] == None:
