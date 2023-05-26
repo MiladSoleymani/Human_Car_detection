@@ -1,8 +1,6 @@
 import numpy as np
-import pandas as pd
 
 from supervision.tools.detections import Detections
-from supervision.video.source import get_video_frames_generator
 from yolox.tracker.byte_tracker import STrack
 from onemetric.cv.utils.iou import box_iou_batch
 

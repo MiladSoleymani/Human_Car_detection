@@ -57,6 +57,12 @@ def parse_args() -> None:
     )
 
     parser.add_argument(
+        "--log_save_steps",
+        type=int,
+        default=10000,
+    )
+
+    parser.add_argument(
         "--yolo_object",
         type=str,
         default="yolov8x.pt",

@@ -196,8 +196,8 @@ def video_process(conf: Dict) -> None:
                     if log_eye_info[str(tracker_id)]["eye_time_eta"] != None:
                         count += 1
 
-                if count > 5:
-                    log(log_eye_info, "log_eye_info", conf["log_save_path"])
+                if count > conf["log_save_steps"]:
+                    log(log_eye_info, "log_eye_info_", conf["log_save_path"])
 
                     log_eye_info = defaultdict(
                         lambda: {
@@ -208,8 +208,9 @@ def video_process(conf: Dict) -> None:
                     )
                     # break
 
-                if idx == (video_info.total_frames - 1):
-                    log(log_eye_info, "log_eye_info", conf["log_save_path"])
+                # if idx == (video_info.total_frames - 1):
+                if idx == 200:
+                    log(log_eye_info, "log_eye_info_", conf["log_save_path"])
                     # break
 
             # object model prediction on single frame
@@ -306,8 +307,8 @@ def video_process(conf: Dict) -> None:
                     if class_id != 0 and str(tracker_id) in speed.keys():
                         log_info[str(tracker_id)]["speed"] = str(speed[str(tracker_id)])
 
-            if len(log_info.keys()) > 5:
-                log(log_info, "person_car", conf["log_save_path"])
+            if len(log_info.keys()) > conf["log_save_steps"]:
+                log(log_info, "person_car_", conf["log_save_path"])
 
                 log_info = defaultdict(
                     lambda: {
@@ -320,7 +321,7 @@ def video_process(conf: Dict) -> None:
                 # break
 
             if idx == (video_info.total_frames - 1):
-                log(log_info, "person_car", conf["log_save_path"])
+                log(log_info, "person_car_", conf["log_save_path"])
                 # break
 
             # format custom labels
@@ -515,7 +516,7 @@ def video_indoor_process(conf: Dict) -> None:
                     count += 1
 
             if count > 5:
-                log(log_info, "indoor", conf["log_save_path"])
+                log(log_info, "indoor_", conf["log_save_path"])
 
                 log_info = defaultdict(
                     lambda: {
@@ -529,7 +530,7 @@ def video_indoor_process(conf: Dict) -> None:
                 )
 
             elif idx == (video_info.total_frames - 1):
-                log(log_info, "indoor", conf["log_save_path"])
+                log(log_info, "indoor_", conf["log_save_path"])
                 break
 
             frame = face_model.draw_detections(
