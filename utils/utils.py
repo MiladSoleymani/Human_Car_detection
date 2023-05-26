@@ -69,6 +69,7 @@ def log(info: Dict, type: str, log_save_path: str) -> None:
 
 
 def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
+    print("yolo_detection: ", yolo_detection)
     best_detection = []
     for bbox, _, class_id, tracker_id in yolo_detection:
         if class_id == 0:  # do the process on persons labels
