@@ -177,8 +177,8 @@ def video_process(conf: Dict) -> None:
                     log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
 
                     landmarks_heat_map[
-                        int(center[1]) : int(center[1]) + 2,
-                        int(center[0]) : int(center[0]) + 2,
+                        int(center[0]),
+                        int(center[1]),
                     ] += 1
 
                 for detection_id in log_eye_info.keys():
