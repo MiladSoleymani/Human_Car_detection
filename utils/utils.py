@@ -59,9 +59,9 @@ def match_detections_with_tracks(
     return tracker_ids
 
 
-def log(info: Dict, log_save_path: str) -> None:
+def log(info: Dict, type: str, log_save_path: str) -> None:
     # info = pd.DataFrame(data=info)
-    name = "log_car_" + str(uuid.uuid4())[:13] + ".json"
+    name = type + str(uuid.uuid4())[:13] + ".json"
     # info.to_csv(os.path.join(log_save_path, name), index=False)
 
     with open(os.path.join(log_save_path, name), "w") as file:
