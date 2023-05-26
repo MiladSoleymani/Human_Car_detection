@@ -370,14 +370,12 @@ def video_process(conf: Dict) -> None:
     cv2.imwrite(
         os.path.join(conf["heatmap_savepath"], "heatmap_cars.jpg"), heat_map_color
     )
-
     # save heatmap on videos
     combine_frame_with_heatmap(
         frame=frame, heatmap=heat_map_color, save_path=conf["heatmap_savepath"]
     )
-
     # Normalize the heat map
-    landmarks_heat_map = landmarks_heat_map.T / np.max(landmarks_heat_map)
+    landmarks_heat_map = landmarks_heat_map / np.max(landmarks_heat_map)
     # Convert the heat map to color using a colormap
     heat_map_color = cv2.applyColorMap(
         (landmarks_heat_map * 255).astype(np.uint8), cv2.COLORMAP_JET
@@ -386,8 +384,6 @@ def video_process(conf: Dict) -> None:
     cv2.imwrite(
         os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
     )
-
-    print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
 
 
 def video_indoor_process(conf: Dict) -> None:
