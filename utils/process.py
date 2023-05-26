@@ -384,18 +384,11 @@ def video_process(conf: Dict) -> None:
 def video_indoor_process(conf: Dict) -> None:
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
-    model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
     face_model = YOLOv8_face(conf["yolo_face"])
-    CLASS_ID = [CLASS_ID[0]]
 
-    print(
-        f"\npretrained {conf['yolo_object'].replace('.pt', '')} classes : {CLASS_NAMES_DICT}"
-    )
-    detection_classe = {id: CLASS_NAMES_DICT[id] for id in CLASS_ID}
-    print(f"\nour detection classe : {detection_classe}")
+    print(f"\npretrained {conf['yolo_face'].replace('.pt', '')}")
 
     # create BYTETracker instance
-    byte_tracker = BYTETracker(BYTETrackerArgs())
     face_byte_tracker = BYTETracker(BYTETrackerArgs())
     # create VideoInfo instance
     video_info = VideoInfo.from_video_path(conf["video_target_path"])
