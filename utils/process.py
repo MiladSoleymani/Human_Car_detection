@@ -97,13 +97,9 @@ def video_process(conf: Dict) -> None:
     speed = {}
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
-        # landmarks_time_map = np.zeros((video_info.height, video_info.width))
-        # landmarks_heat_map = np.zeros((video_info.height, video_info.width))
-        # heat_map = np.zeros((video_info.height, video_info.width), dtype=np.float32)
-
-        landmarks_time_map = np.zeros((video_info.width, video_info.height))
-        landmarks_heat_map = np.zeros((video_info.width, video_info.height))
-        heat_map = np.zeros((video_info.width, video_info.height), dtype=np.float32)
+        landmarks_time_map = np.zeros((video_info.height, video_info.width))
+        landmarks_heat_map = np.zeros((video_info.height, video_info.width))
+        heat_map = np.zeros((video_info.height, video_info.width), dtype=np.float32)
 
         log_info = defaultdict(
             lambda: {
@@ -152,7 +148,6 @@ def video_process(conf: Dict) -> None:
                     detections=face_detections, tracks=face_tracks
                 )
 
-                print(f"\n{face_tracker_id = }")
                 face_detections.tracker_id = np.array(face_tracker_id)
 
                 mask = np.array(
@@ -166,6 +161,14 @@ def video_process(conf: Dict) -> None:
 
                 detection_ids = []
                 for face_detections, x, y in zip(face_detections, x_points, y_points):
+                    if (
+                        x[0] >= video_info.height
+                        or x[1] >= video_info.height
+                        or y[1] >= video_info.width
+                        or y[0] >= video_info.width
+                    ):
+                        continue
+
                     bbox, confidence, class_id, tracker_id = face_detections
 
                     center = ((x[0] + x[1]) // 2, (y[0] + y[1]) // 2)
