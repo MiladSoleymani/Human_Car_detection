@@ -68,47 +68,29 @@ def log(info: Dict, type: str, log_save_path: str) -> None:
 
 def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
     best_detection = []
-
-    for bbox, _, class_id, tracker_id in yolo_detection:
-        print("bbox: ", bbox)
-
-    for demography in mtcnn_detection:
-        region = demography["region"]
-        print(
-            "region[x]",
-            region["x"],
-            "region[w]",
-            region["w"],
-            "region[y]",
-            region["y"],
-            "region[h]",
-            region["h"],
-        )
-
-    print("mtcnn_detection: ", mtcnn_detection)
-
-    for bbox, _, class_id, tracker_id in yolo_detection:
-        if class_id == 0:  # do the process on persons labels
-            for demography in mtcnn_detection:
-                region = demography["region"]
-                face_center = (
-                    int(region["x"] + region["w"] / 2),
-                    int(region["y"] + region["h"] / 2),
+    for bbox, _, _, tracker_id in yolo_detection:
+        yolo_width = bbox[2] - bbox[0]
+        yolo_height = bbox[3] - bbox[1]
+        for demography in mtcnn_detection:
+            region = demography["region"]
+            face_center = (
+                int(region["x"] + region["w"] / 2),
+                int(region["y"] + region["h"] / 2),
+            )
+            if (
+                face_center[0] > (bbox[0] - (0.5 * yolo_width))
+                and face_center[0] < (bbox[2] + (0.5 * yolo_width))
+                and face_center[1] > (bbox[1] - (0.5 * yolo_height))
+                and face_center[1] < (bbox[3] + (0.5 * yolo_height))
+            ):
+                best_detection.append(
+                    {
+                        "id": tracker_id,
+                        "region": region,
+                        "age": demography["age"],
+                        "dominant_gender": demography["dominant_gender"],
+                    }
                 )
-                if (
-                    face_center[0] > bbox[0]
-                    and face_center[0] < bbox[2]
-                    and face_center[1] > bbox[1]
-                    and face_center[1] < bbox[3]
-                ):
-                    best_detection.append(
-                        {
-                            "id": tracker_id,
-                            "region": region,
-                            "age": demography["age"],
-                            "dominant_gender": demography["dominant_gender"],
-                        }
-                    )
 
     return best_detection
 
