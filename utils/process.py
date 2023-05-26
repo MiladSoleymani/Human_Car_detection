@@ -490,22 +490,16 @@ def video_indoor_process(conf: Dict) -> None:
                 except:
                     skip_iter = True
 
-                print("after try")
                 if not skip_iter:
-                    print("in if")
                     best_detections = find_best_region(
                         face_detections, demographies_mtcnn
                     )  # finding best faces' bboxes
 
                     print("best_detections: ", best_detections)
 
-                    for detection in best_detections:
-                        log_info[str(detection["id"])]["age"] = detection[detection][
-                            "age"
-                        ]
-                        log_info[str(detection["id"])]["gender"] = detection[detection][
-                            "gender"
-                        ]
+                    for id in best_detections.keys():
+                        log_info[str(id)]["age"] = best_detections[str(id)]["age"]
+                        log_info[str(id)]["gender"] = best_detections[str(id)]["gender"]
 
             for detection_id in log_info.keys():
                 if detection_id not in detection_ids:

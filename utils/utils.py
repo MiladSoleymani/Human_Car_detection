@@ -67,7 +67,14 @@ def log(info: Dict, type: str, log_save_path: str) -> None:
 
 
 def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
-    best_detection = []
+    best_detection = defaultdict(
+        lambda: {
+            "region": None,
+            "age": None,
+            "dominant_gender": None,
+        }
+    )
+
     for bbox, _, _, tracker_id in yolo_detection:
         yolo_width = bbox[2] - bbox[0]
         yolo_height = bbox[3] - bbox[1]
@@ -83,14 +90,11 @@ def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
                 and face_center[1] > (bbox[1] - (0.5 * yolo_height))
                 and face_center[1] < (bbox[3] + (0.5 * yolo_height))
             ):
-                best_detection.append(
-                    {
-                        "id": tracker_id,
-                        "region": region,
-                        "age": demography["age"],
-                        "dominant_gender": demography["dominant_gender"],
-                    }
-                )
+                best_detection[str(tracker_id)]["region"] = region
+                best_detection[str(tracker_id)]["age"] = demography["age"]
+                best_detection[str(tracker_id)]["dominant_gender"] = demography[
+                    "dominant_gender"
+                ]
 
     return best_detection
 
