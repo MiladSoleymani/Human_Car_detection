@@ -164,7 +164,7 @@ def video_process(conf: Dict) -> None:
                 for face_detections, x, y in zip(face_detections, x_points, y_points):
                     bbox, confidence, class_id, tracker_id = face_detections
                     log_eye_info[str(tracker_id)]["center_eye_loc"].append(
-                        str(int((x[0] + x[1]) // 2), int((y[0] + y[1]) // 2))
+                        str((x[0] + x[1]) // 2, (y[0] + y[1]) // 2)
                     )
                     log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
 
@@ -462,7 +462,7 @@ def video_indoor_process(conf: Dict) -> None:
                         detected_tracker_id.append(tracker_id)
 
                     log_info[str(tracker_id)]["center_eye_loc"].append(
-                        str(int((x[0] + x[1]) // 2), int((y[0] + y[1]) // 2))
+                        str((x[0] + x[1]) // 2, (y[0] + y[1]) // 2)
                     )
                     log_info[str(tracker_id)]["eye_detected_count"] += 1
 
