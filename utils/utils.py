@@ -69,7 +69,22 @@ def log(info: Dict, type: str, log_save_path: str) -> None:
 def find_best_region(yolo_detection: Tuple, mtcnn_detection: List):
     best_detection = []
 
-    print("yolo_detection: ", yolo_detection)
+    for bbox, _, class_id, tracker_id in yolo_detection:
+        print("bbox: ", bbox)
+
+    for demography in mtcnn_detection:
+        region = demography["region"]
+        print(
+            "region[x]",
+            region["x"],
+            "region[w]",
+            region["w"],
+            "region[y]",
+            region["y"],
+            "region[h]",
+            region["h"],
+        )
+
     print("mtcnn_detection: ", mtcnn_detection)
 
     for bbox, _, class_id, tracker_id in yolo_detection:
