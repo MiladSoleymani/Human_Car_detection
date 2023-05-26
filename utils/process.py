@@ -529,7 +529,7 @@ def video_indoor_process(conf: Dict) -> None:
                     }
                 )
 
-            elif idx == 40:
+            elif idx == 399:
                 log(log_info, "indoor_", conf["log_save_path"])
 
             elif idx == (video_info.total_frames - 1):
