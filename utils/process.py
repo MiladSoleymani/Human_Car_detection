@@ -158,7 +158,7 @@ def video_process(conf: Dict) -> None:
                 )
                 face_detections.filter(mask=mask, inplace=True)
 
-                for face_detections, x, y in zip(face_detections, x_points, y_points):
+                for face_detection, x, y in zip(face_detections, x_points, y_points):
                     if (
                         x[0] >= (video_info.height - 5)
                         or x[1] >= (video_info.height - 5)
@@ -167,7 +167,7 @@ def video_process(conf: Dict) -> None:
                     ):
                         continue
 
-                    bbox, confidence, class_id, tracker_id = face_detections
+                    bbox, confidence, class_id, tracker_id = face_detection
 
                     center = ((x[0] + x[1]) // 2, (y[0] + y[1]) // 2)
                     log_eye_info[str(tracker_id)]["center_eye_loc"].append(
@@ -457,7 +457,7 @@ def video_indoor_process(conf: Dict) -> None:
                 face_detections.filter(mask=mask, inplace=True)
 
                 detection_ids = []
-                for face_detections, x, y in zip(face_detections, x_points, y_points):
+                for face_detection, x, y in zip(face_detections, x_points, y_points):
                     if (
                         x[0] >= (video_info.height - 5)
                         or x[1] >= (video_info.height - 5)
@@ -466,7 +466,7 @@ def video_indoor_process(conf: Dict) -> None:
                     ):
                         continue
 
-                    _, _, _, tracker_id = face_detections
+                    _, _, _, tracker_id = face_detection
 
                     if tracker_id not in detected_tracker_id:
                         person_new_ids.append(tracker_id)
@@ -480,8 +480,6 @@ def video_indoor_process(conf: Dict) -> None:
 
                     detection_ids.append(str(tracker_id))
 
-            print("face_detections : ", face_detections)
-            continue
             if len(person_new_ids) > 0:
                 skip_iter = False
                 try:
