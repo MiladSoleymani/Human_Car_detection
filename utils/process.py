@@ -173,6 +173,7 @@ def video_process(conf: Dict) -> None:
                         str((center[0], center[1]))
                     )
 
+                    print(log_eye_info)
                     log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
 
                     landmarks_time_map[x[0], y[0]] += 1  # right eye
