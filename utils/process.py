@@ -531,7 +531,6 @@ def video_indoor_process(conf: Dict) -> None:
 
             elif idx == 40:
                 log(log_info, "indoor_", conf["log_save_path"])
-                break
 
             elif idx == (video_info.total_frames - 1):
                 log(log_info, "indoor_", conf["log_save_path"])
