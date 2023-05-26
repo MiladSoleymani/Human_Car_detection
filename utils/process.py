@@ -496,6 +496,8 @@ def video_indoor_process(conf: Dict) -> None:
                         face_detections, demographies_mtcnn
                     )  # finding best faces' bboxes
 
+                    print("best_detections: ", best_detections)
+
                     for detection in best_detections:
                         log_info[str(detection["id"])]["age"] = detection["id"]["age"]
                         log_info[str(detection["id"])]["gender"] = detection["id"][
