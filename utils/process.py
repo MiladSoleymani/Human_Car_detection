@@ -119,7 +119,7 @@ def video_process(conf: Dict) -> None:
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 150:
+            if idx == 50:
                 break
 
             # face model prediction on single frame
@@ -207,7 +207,7 @@ def video_process(conf: Dict) -> None:
 
                 if idx == (video_info.total_frames - 1):
                     log(log_eye_info, "log_eye_info_", conf["log_save_path"])
-                    # break
+                    break
 
             # object model prediction on single frame
             results = model(frame)
@@ -316,9 +316,9 @@ def video_process(conf: Dict) -> None:
                 )
                 # break
 
-            if idx == 200:
+            if idx == (video_info.total_frames - 1):
                 log(log_info, "person_car_", conf["log_save_path"])
-                # break
+                break
 
             # format custom labels
             labels = []
@@ -528,6 +528,10 @@ def video_indoor_process(conf: Dict) -> None:
                         "eye_detected_count": 0,
                     }
                 )
+
+            elif idx == 40:
+                log(log_info, "indoor_", conf["log_save_path"])
+                break
 
             elif idx == (video_info.total_frames - 1):
                 log(log_info, "indoor_", conf["log_save_path"])
