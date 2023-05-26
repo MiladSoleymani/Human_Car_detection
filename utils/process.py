@@ -318,7 +318,7 @@ def video_process(conf: Dict) -> None:
                 )
                 # break
 
-            if idx == (video_info.total_frames - 1):
+            if idx == 200:
                 log(log_info, "person_car_", conf["log_save_path"])
                 # break
 
