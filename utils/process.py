@@ -119,9 +119,6 @@ def video_process(conf: Dict) -> None:
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 50:
-                break
-
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
@@ -314,7 +311,6 @@ def video_process(conf: Dict) -> None:
                         "location": [],
                     }
                 )
-                # break
 
             if idx == (video_info.total_frames - 1):
                 log(log_info, "person_car_", conf["log_save_path"])
@@ -415,9 +411,6 @@ def video_indoor_process(conf: Dict) -> None:
         detected_tracker_id = []
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 400:
-                break
-
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
@@ -529,12 +522,8 @@ def video_indoor_process(conf: Dict) -> None:
                     }
                 )
 
-            elif idx == 399:
-                log(log_info, "indoor_", conf["log_save_path"])
-
             elif idx == (video_info.total_frames - 1):
                 log(log_info, "indoor_", conf["log_save_path"])
-                break
 
             frame = face_model.draw_detections(
                 frame, boxes, scores, kpts
