@@ -127,8 +127,8 @@ def video_process(conf: Dict) -> None:
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
 
             if boxes.size != 0:  # check if sth is detected or not
-                y_points = kpts[..., 0::3].astype(int)  # extract x points
-                x_points = kpts[..., 1::3].astype(int)  # extract y points
+                y_points = kpts[..., 0::3].astype(int)  # extract y points
+                x_points = kpts[..., 1::3].astype(int)  # extract x points
 
                 print("\ntracking the faces")
                 face_detections = Detections(
@@ -205,8 +205,7 @@ def video_process(conf: Dict) -> None:
                     )
                     # break
 
-                # if idx == (video_info.total_frames - 1):
-                if idx == 200:
+                if idx == (video_info.total_frames - 1):
                     log(log_eye_info, "log_eye_info_", conf["log_save_path"])
                     # break
 
@@ -425,9 +424,8 @@ def video_indoor_process(conf: Dict) -> None:
 
             person_new_ids = []
             if boxes.size != 0:
-                print("in if")
-                x_points = kpts[..., 0::3].astype(int)  # extract x points
-                y_points = kpts[..., 1::3].astype(int)  # extract y points
+                y_points = kpts[..., 0::3].astype(int)  # extract y points
+                x_points = kpts[..., 1::3].astype(int)  # extract x points
 
                 print("\ntracking the faces")
                 face_detections = Detections(
@@ -460,6 +458,14 @@ def video_indoor_process(conf: Dict) -> None:
 
                 detection_ids = []
                 for face_detections, x, y in zip(face_detections, x_points, y_points):
+                    if (
+                        x[0] >= (video_info.height - 5)
+                        or x[1] >= (video_info.height - 5)
+                        or y[1] >= (video_info.width - 5)
+                        or y[0] >= (video_info.width - 5)
+                    ):
+                        continue
+
                     _, _, _, tracker_id = face_detections
 
                     if tracker_id not in detected_tracker_id:
@@ -499,16 +505,17 @@ def video_indoor_process(conf: Dict) -> None:
 
             for detection_id in log_info.keys():
                 if detection_id not in detection_ids:
-                    log_info[str(tracker_id)]["eye_time_eta"] = (
-                        log_info[str(tracker_id)]["eye_detected_count"] / video_info.fps
+                    log_info[str(detection_id)]["eye_time_eta"] = (
+                        log_info[str(detection_id)]["eye_detected_count"]
+                        / video_info.fps
                     )
 
             count = 0
             for detection_id in log_info.keys():
-                if log_info[str(tracker_id)]["eye_time_eta"] != None:
+                if log_info[str(detection_id)]["eye_time_eta"] != None:
                     count += 1
 
-            if count > 5:
+            if count > conf["log_save_steps"]:
                 log(log_info, "indoor_", conf["log_save_path"])
 
                 log_info = defaultdict(
