@@ -127,8 +127,8 @@ def video_process(conf: Dict) -> None:
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
 
             if boxes.size != 0:  # check if sth is detected or not
-                x_points = kpts[..., 0::3].astype(int)  # extract x points
-                y_points = kpts[..., 1::3].astype(int)  # extract y points
+                y_points = kpts[..., 0::3].astype(int)  # extract x points
+                x_points = kpts[..., 1::3].astype(int)  # extract y points
 
                 print("\ntracking the faces")
                 face_detections = Detections(
