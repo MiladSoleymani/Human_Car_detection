@@ -85,7 +85,9 @@ class LineCounter:
     @staticmethod
     def check_intersection(point, line_start, line_end):
         distance = cv2.pointPolygonTest(
-            (line_start, line_end), (point.x, point.y), True
+            ((line_start.x, line_start.y), (line_end.x, line_end.y)),
+            (point.x, point.y),
+            True,
         )
         print("\n")
         print("-" * 100)
