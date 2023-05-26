@@ -41,6 +41,9 @@ class LineCounter:
             center = calculate_car_center(xyxy)
             center_point = Point(x=center[0], y=center[1])
 
+            print(f"{self.vector.start = }")
+            print(f"{self.vector.end = }")
+
             if self.check_intersection(
                 center_point, self.vector.start, self.vector.end
             ):
