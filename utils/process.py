@@ -165,7 +165,7 @@ def video_process(conf: Dict) -> None:
                     bbox, confidence, class_id, tracker_id = face_detections
 
                     center = ((x[0] + x[1]) // 2, (y[0] + y[1]) // 2)
-                    log_info[str(tracker_id)]["center_eye_loc"].append(
+                    log_eye_info[str(tracker_id)]["center_eye_loc"].append(
                         str((center[0], center[1]))
                     )
 
