@@ -84,8 +84,15 @@ class LineCounter:
 
     @staticmethod
     def check_intersection(point, line_start, line_end):
+        contour = (
+            (line_start.x, line_start.y),
+            (line_start.x, line_end.y),
+            (line_end.x, line_end.y),
+            (line_end.x, line_start.y),
+        )
+        print(f"{contour = }")
         distance = cv2.pointPolygonTest(
-            ((line_start.x, line_start.y), (line_end.x, line_end.y)),
+            contour,
             (point.x, point.y),
             True,
         )
