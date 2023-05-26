@@ -166,7 +166,7 @@ def video_process(conf: Dict) -> None:
 
                     center = ((x[0] + x[1]) // 2, (y[0] + y[1]) // 2)
                     log_info[str(tracker_id)]["center_eye_loc"].append(
-                        str(str(center[0]), str(center[1]))
+                        str((center[0], center[1]))
                     )
 
                     log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
@@ -466,7 +466,7 @@ def video_indoor_process(conf: Dict) -> None:
 
                     center = ((x[0] + x[1]) // 2, (y[0] + y[1]) // 2)
                     log_info[str(tracker_id)]["center_eye_loc"].append(
-                        str(str(center[0]), str(center[1]))
+                        str((center[0], center[1]))
                     )
                     log_info[str(tracker_id)]["eye_detected_count"] += 1
 
