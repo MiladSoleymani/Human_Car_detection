@@ -499,7 +499,9 @@ def video_indoor_process(conf: Dict) -> None:
 
                     for id in best_detections.keys():
                         log_info[str(id)]["age"] = best_detections[str(id)]["age"]
-                        log_info[str(id)]["gender"] = best_detections[str(id)]["gender"]
+                        log_info[str(id)]["gender"] = best_detections[str(id)][
+                            "dominant_gender"
+                        ]
 
             for detection_id in log_info.keys():
                 if detection_id not in detection_ids:
