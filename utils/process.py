@@ -160,10 +160,10 @@ def video_process(conf: Dict) -> None:
 
                 for face_detections, x, y in zip(face_detections, x_points, y_points):
                     if (
-                        x[0] >= video_info.height
-                        or x[1] >= video_info.height
-                        or y[1] >= video_info.width
-                        or y[0] >= video_info.width
+                        x[0] >= (video_info.height - 5)
+                        or x[1] >= (video_info.height - 5)
+                        or y[1] >= (video_info.width - 5)
+                        or y[0] >= (video_info.width - 5)
                     ):
                         continue
 
@@ -177,8 +177,8 @@ def video_process(conf: Dict) -> None:
                     log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
 
                     landmarks_heat_map[
-                        int(center[0]),
-                        int(center[1]),
+                        int(center[0]) : int(center[0]) + 5,
+                        int(center[1]) : int(center[1]) + 5,
                     ] += 1
 
                 for detection_id in log_eye_info.keys():
