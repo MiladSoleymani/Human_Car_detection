@@ -84,25 +84,24 @@ class LineCounter:
 
     @staticmethod
     def check_intersection(point, line_start, line_end):
-        contour = (
-            (line_start.x, line_start.y),
-            (line_start.x, line_end.y),
-            (line_end.x, line_end.y),
-            (line_end.x, line_start.y),
-        )
-        print(f"{contour = }")
-        distance = cv2.pointPolygonTest(
-            contour,
-            (point.x, point.y),
-            True,
-        )
-        print("\n")
-        print("-" * 100)
-        print(f"{distance = }")
-        print("-" * 100)
-        print("\n")
+        x1, y1 = line_start.x, line_start.y
+        x2, y2 = line_end.x, line_end.y
+        x, y = point.x, point.y
 
-        return distance >= 0
+        # Compute the cross product
+        cross_product = (y - y1) * (x2 - x1) - (x - x1) * (y2 - y1)
+
+        if cross_product != 0:
+            return False  # The point and the line are not collinear
+
+        dot_product = (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)
+        squared_length = (x2 - x1) ** 2 + (y2 - y1) ** 2
+
+        # Check if the point is within the line segment
+        if 0 <= dot_product <= squared_length:
+            return True
+
+        return False
 
 
 class LineCounterAnnotator:
