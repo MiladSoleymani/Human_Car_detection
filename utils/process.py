@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import os
+import json
 from collections import defaultdict
 
 from supervision.draw.color import ColorPalette
@@ -49,6 +50,7 @@ def video_process(conf: Dict) -> None:
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
+    print(f"{CLASS_NAMES_DICT.keys()}")
     face_model = YOLOv8_face(conf["yolo_face"])
 
     print(
@@ -76,6 +78,8 @@ def video_process(conf: Dict) -> None:
     )  # extract area and distance
 
     lines = extract_line_coordinates(conf["line_path"])  # extract line
+
+    print(f"{len(lines) = }")
 
     line_counters = {
         i: {
@@ -105,9 +109,14 @@ def video_process(conf: Dict) -> None:
                 "location": [],
             }
         )
+
+        log_eye_info = defaultdict(
+            lambda: {"eye_loc": [], "eye_detected_count": 0, "eye_time_eta": 0}
+        )
+        print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 200:
+            if idx == 500:
                 break
 
             # face model prediction on single frame
@@ -148,9 +157,18 @@ def video_process(conf: Dict) -> None:
                 )
                 face_detections.filter(mask=mask, inplace=True)
 
+                for bbox, confidence, class_id, tracker_id in face_detections:
+                    cx, cy = calculate_car_center(bbox)
+                    log_eye_info[str(tracker_id)]["eye_loc"].append((str(cx), str(cy)))
+                    log_eye_info[str(tracker_id)]["eye_detected_count"] += 1
+
                 face_labels = []
                 for bbox, confidence, class_id, tracker_id in face_detections:
                     face_labels.append(f"#{tracker_id}")
+
+                frame = box_annotator.annotate(
+                    frame=frame, detections=face_detections, labels=face_labels
+                )
 
             x_points = kpts[..., 0::3].astype(int)  # extract x points
             y_points = kpts[..., 1::3].astype(int)  # extract y points
@@ -247,6 +265,7 @@ def video_process(conf: Dict) -> None:
                         log_info[str(tracker_id)]["person_car"] = "person"
                     else:
                         log_info[str(tracker_id)]["person_car"] = "car"
+
                         log_info[str(tracker_id)]["car_type"] = CLASS_NAMES_DICT[
                             class_id
                         ]
@@ -274,11 +293,11 @@ def video_process(conf: Dict) -> None:
                         "location": [],
                     }
                 )
-                break
+                # break
 
             if idx == (video_info.total_frames - 1):
                 log(log_info, conf["log_save_path"])
-                break
+                # break
 
             # format custom labels
             labels = []
@@ -307,12 +326,8 @@ def video_process(conf: Dict) -> None:
                 )
 
             # annotate and display frame
-            # frame = box_annotator.annotate(
-            #     frame=frame, detections=detections, labels=labels
-            # )
-
             frame = box_annotator.annotate(
-                frame=frame, detections=face_detections, labels=face_labels
+                frame=frame, detections=detections, labels=labels
             )
 
             sink.write_frame(frame)
@@ -344,6 +359,12 @@ def video_process(conf: Dict) -> None:
         os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
     )
 
+    for key, value in log_eye_info.items():
+        value["eye_time_eta"] = value["eye_detected_count"] / video_info.fps
+
+    with open(os.path.join(conf["log_save_path"], "eye_log_data.json"), "w") as fout:
+        json.dump(log_eye_info, fout)
+
     print(f"time elapse: {np.sum(landmarks_time_map) / (2 * video_info.fps)}")
 
 
@@ -358,6 +379,7 @@ def video_indoor_process(conf: Dict) -> None:
     # Load yolo pretrained model
     print("\nmodel summary : ", end="")
     model, CLASS_NAMES_DICT, CLASS_ID = load_yolo(conf["yolo_object"])
+    face_model = YOLOv8_face(conf["yolo_face"])
     CLASS_ID = [CLASS_ID[0]]
 
     print(
@@ -368,6 +390,7 @@ def video_indoor_process(conf: Dict) -> None:
 
     # create BYTETracker instance
     byte_tracker = BYTETracker(BYTETrackerArgs())
+    face_byte_tracker = BYTETracker(BYTETrackerArgs())
     # create VideoInfo instance
     video_info = VideoInfo.from_video_path(conf["video_target_path"])
     print("\nvideo Info : ", end="")
@@ -376,17 +399,118 @@ def video_indoor_process(conf: Dict) -> None:
     generator = get_video_frames_generator(conf["video_target_path"])
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
-        log_info = {
-            "id": [],
-            "age": [],
-            "gender": [],
-        }
+        log_info = defaultdict(
+            lambda: {
+                "age": None,
+                "gender": None,
+                "eye_loc": [],
+                "eye_detected_count": 0,
+            }
+        )
 
         detected_tracker_id = []
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
             if idx == 400:
                 break
+
+            # face model prediction on single frame
+            boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
+            face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
+
+            if boxes.size != 0:
+                print("\ntracking the faces")
+                face_detections = Detections(
+                    xyxy=face_xyxy,
+                    confidence=scores,
+                    class_id=class_ids.astype(int),
+                )
+
+                face_tracks = face_byte_tracker.update(
+                    output_results=detections2boxes(detections=face_detections),
+                    img_info=frame.shape,
+                    img_size=frame.shape,
+                )
+
+                face_tracker_id = match_detections_with_tracks(
+                    detections=face_detections, tracks=face_tracks
+                )
+
+                print(f"\n{face_tracker_id = }")
+                face_detections.tracker_id = np.array(face_tracker_id)
+
+                mask = np.array(
+                    [
+                        tracker_id is not None
+                        for tracker_id in face_detections.tracker_id
+                    ],
+                    dtype=bool,
+                )
+                face_detections.filter(mask=mask, inplace=True)
+
+                face_labels = []
+                for bbox, confidence, class_id, tracker_id in face_detections:
+                    face_labels.append(f"#{tracker_id}")
+
+                for bbox, confidence, class_id, tracker_id in face_detections:
+                    cx, cy = calculate_car_center(bbox)
+                    log_info[tracker_id]["eye_loc"].append(str(cx, cy))
+                    log_info[tracker_id]["eye_detected_count"] += 1
+
+                    if (
+                        log_info[tracker_id]["age"] == None
+                        or log_info[tracker_id]["gender"] == None
+                    ):
+                        skip_iter = False
+                        try:
+                            demographies_mtcnn = DeepFace.analyze(
+                                img_path=frame,
+                                detector_backend="mtcnn",
+                                actions=("age", "gender"),
+                            )
+                        except:
+                            skip_iter = True
+
+                        if not skip_iter:
+                            best_detections = find_best_region(
+                                face_detections, demographies_mtcnn
+                            )  # finding best faces' bboxes
+                            for demography in best_detections:
+                                if demography["id"] in person_new_ids:
+                                    region = demography["region"]
+                                    age = demography["age"]
+                                    dominant_gender = demography["dominant_gender"]
+                                    starting_point = (region["x"], region["y"])
+                                    ending_point = (
+                                        int(region["x"] + region["w"]),
+                                        int(region["y"] + region["h"]),
+                                    )
+
+                                    cv2.rectangle(
+                                        frame,
+                                        starting_point,
+                                        ending_point,
+                                        (255, 255, 255),
+                                        2,
+                                    )
+
+                                    cv2.putText(
+                                        frame,
+                                        f"gender:{dominant_gender} age:{age}",
+                                        (starting_point[0], starting_point[1] - 10),
+                                        cv2.FONT_HERSHEY_SIMPLEX,
+                                        0.9,
+                                        (36, 255, 12),
+                                        2,
+                                    )
+
+                            for detection in best_detections:
+                                log_info[detection["id"]]["age"] = detection["id"][
+                                    "age"
+                                ]
+                                log_info[detection["id"]]["gender"] = detection["id"][
+                                    "gender"
+                                ]
 
             # model prediction on single frame and conversion to supervision Detections
             results = model(frame)
@@ -475,11 +599,14 @@ def video_indoor_process(conf: Dict) -> None:
             if len(log_info["id"]) > 5:
                 log(log_info, conf["log_save_path"])
 
-                log_info = {
-                    "id": [],
-                    "age": [],
-                    "gender": [],
-                }
+                log_info = defaultdict(
+                    lambda: {
+                        "age": None,
+                        "gender": None,
+                        "eye_loc": [],
+                        "eye_detected_count": 0,
+                    }
+                )
 
             elif idx == (video_info.total_frames - 1):
                 log(log_info, conf["log_save_path"])
