@@ -444,7 +444,6 @@ def video_indoor_process(conf: Dict) -> None:
                     detections=face_detections, tracks=face_tracks
                 )
 
-                print(f"\n{face_tracker_id = }")
                 face_detections.tracker_id = np.array(face_tracker_id)
 
                 mask = np.array(
@@ -491,7 +490,9 @@ def video_indoor_process(conf: Dict) -> None:
                 except:
                     skip_iter = True
 
+                print("after try")
                 if not skip_iter:
+                    print("in if")
                     best_detections = find_best_region(
                         face_detections, demographies_mtcnn
                     )  # finding best faces' bboxes
