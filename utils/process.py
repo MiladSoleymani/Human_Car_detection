@@ -481,6 +481,7 @@ def video_indoor_process(conf: Dict) -> None:
                     detection_ids.append(str(tracker_id))
 
             print("face_detections : ", face_detections)
+            continue
             if len(person_new_ids) > 0:
                 skip_iter = False
                 try:
