@@ -8,6 +8,8 @@ from supervision.draw.color import Color
 from supervision.geometry.dataclasses import Point, Rect, Vector
 from supervision.tools.detections import Detections
 
+from utils.utils import calculate_car_center
+
 
 class LineCounter:
     def __init__(self, start: Point, end: Point):
@@ -36,6 +38,18 @@ class LineCounter:
 
             # we check if all four anchors of bbox are on the same side of vector
             x1, y1, x2, y2 = xyxy
+            center = calculate_car_center(xyxy)
+            center_point = Point(x=center[0], y=center[1])
+
+            if self.check_intersection(
+                center_point, self.vector.start, self.vector.end
+            ):
+                print("\n")
+                print("-" * 100)
+                print("Sth is intersected")
+                print("-" * 100)
+                print("\n")
+
             anchors = [
                 Point(x=x1, y=y1),
                 Point(x=x1, y=y2),
@@ -64,6 +78,19 @@ class LineCounter:
             else:
                 self.out_count += 1
                 self.count_dicts[class_id]["out"] += 1
+
+    @staticmethod
+    def check_intersection(point, line_start, line_end):
+        distance = cv2.pointPolygonTest(
+            (line_start, line_end), (point.x, point.y), True
+        )
+        print("\n")
+        print("-" * 100)
+        print(f"{distance = }")
+        print("-" * 100)
+        print("\n")
+
+        return distance >= 0
 
 
 class LineCounterAnnotator:
