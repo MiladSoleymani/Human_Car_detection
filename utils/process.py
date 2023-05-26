@@ -97,9 +97,13 @@ def video_process(conf: Dict) -> None:
     speed = {}
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
-        landmarks_time_map = np.zeros((video_info.height, video_info.width))
-        landmarks_heat_map = np.zeros((video_info.height, video_info.width))
-        heat_map = np.zeros((video_info.height, video_info.width), dtype=np.float32)
+        # landmarks_time_map = np.zeros((video_info.height, video_info.width))
+        # landmarks_heat_map = np.zeros((video_info.height, video_info.width))
+        # heat_map = np.zeros((video_info.height, video_info.width), dtype=np.float32)
+
+        landmarks_time_map = np.zeros((video_info.width, video_info.height))
+        landmarks_heat_map = np.zeros((video_info.width, video_info.height))
+        heat_map = np.zeros((video_info.width, video_info.height), dtype=np.float32)
 
         log_info = defaultdict(
             lambda: {
