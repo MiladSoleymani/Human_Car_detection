@@ -60,8 +60,7 @@ class LineCounter:
 
             self.tracker_state[tracker_id] = tracker_state
             if tracker_state:
-                self.in_count += 1
-                self.count_dicts[class_id]["in"] += 1
+                print("in")
             else:
                 self.out_count += 1
                 self.count_dicts[class_id]["out"] += 1
