@@ -106,6 +106,13 @@ def parse_args() -> None:
     )
 
     parser.add_argument(
+        "--multi_line",
+        type=str,
+        default="configs/lines.json",
+        help="determine a line area",
+    )
+
+    parser.add_argument(
         "--heatmap_savepath",
         type=str,
         default=os.getcwd(),

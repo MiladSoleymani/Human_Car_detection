@@ -32,6 +32,7 @@ from utils.utils import (
     calculate_down_center,
     combine_frame_with_heatmap,
     extract_multi_poly_coordinates,
+    extract_multi_line_coordinates,
 )
 
 from typing import Dict
@@ -83,6 +84,7 @@ def video_process(conf: Dict) -> None:
     print(f"{len(lines) = }")
 
     multi_poly = extract_multi_poly_coordinates(conf["multi_poly"])
+    multi_line = extract_multi_line_coordinates(conf["multi_line"])
 
     line_counters = {
         i: {
@@ -99,6 +101,8 @@ def video_process(conf: Dict) -> None:
     in_polygon = {}
     speed = {}
     multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
+    multi_line_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
+
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
         landmarks_heat_map = np.zeros((video_info.height, video_info.width))
@@ -123,8 +127,8 @@ def video_process(conf: Dict) -> None:
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            # if idx == 300:
-            #     break
+            if idx == 400:
+                break
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
@@ -300,6 +304,20 @@ def video_process(conf: Dict) -> None:
                                 set(multi_poly_log[key]["tracker_ids"])
                             )
 
+                    for key, value in multi_line.items():
+                        result = cv2.pointPolygonTest(
+                            np.array(value["area"], np.int32),
+                            (int(cx), int(cy)),
+                            False,
+                        )
+
+                        if result >= 0:
+                            print(f"object {tracker_id} pass area {key}")
+                            multi_line_log[key]["tracker_ids"].append(int(tracker_id))
+                            multi_line_log[key]["object_count"] = len(
+                                set(multi_line_log[key]["tracker_ids"])
+                            )
+
                     # print(f"calculating is finished...")
 
             for bbox, _, class_id, tracker_id in detections:
@@ -366,6 +384,50 @@ def video_process(conf: Dict) -> None:
                     frame, [np.array(value["area"], np.int32)], True, (15, 228, 10), 3
                 )
 
+            for key, value in multi_line.items():
+                cv2.polylines(
+                    frame, [np.array(value["area"], np.int32)], True, (15, 228, 10), 3
+                )
+
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 1.0
+            font_color = (255, 255, 255)  # White color
+            line_thickness = 2
+
+            # Determine the size of the text
+            text_size, _ = cv2.getTextSize(
+                "Sample Text", font, font_scale, line_thickness
+            )
+
+            # Calculate the position of the text (centered in the frame)
+            text_x = int((frame.shape[1] - text_size[0]) / 2)
+            text_y = int((frame.shape[0] + text_size[1]) / 2)
+
+            # Calculate the position of the list values
+            list_text_x = int((frame.shape[1] - text_size[0]) / 2)
+            list_text_y = (
+                text_y - 30
+            )  # Adjust the value to position the list above the frame
+
+            # Iterate over the values and write them with spaces
+            for key, value in multi_line_log.items():
+                list_text = f"{key}" + " : " + str(value["object_count"]) + " "
+                list_text_size, _ = cv2.getTextSize(
+                    list_text, font, font_scale, line_thickness
+                )
+                list_text_x += list_text_size[
+                    0
+                ]  # Update the x-position for the next value
+                cv2.putText(
+                    frame,
+                    list_text,
+                    (list_text_x, list_text_y),
+                    font,
+                    font_scale,
+                    font_color,
+                    line_thickness,
+                )
+
             for value in line_counters.values():
                 value["line_counter"].update(detections=detections)
                 value["line_counter_annotator"].annotate(
@@ -410,6 +472,9 @@ def video_process(conf: Dict) -> None:
 
     with open(os.path.join(conf["log_save_path"], "multi_poly_logs.json"), "w") as file:
         json.dump(multi_poly_log, file)
+
+    with open(os.path.join(conf["log_save_path"], "multi_line_logs.json"), "w") as file:
+        json.dump(multi_line_log, file)
 
 
 def video_indoor_process(conf: Dict) -> None:
