@@ -130,7 +130,7 @@ def label_data(conf, progress=None):
     elif os.path.isdir(conf["data_path"]):
         format_of_file = "{jpg,jpeg,png}"
         folder_path = glob.glob(os.path.join(conf["data_path"], "*.jpg"))
-        for file in folder_path:
+        for file in tqdm(folder_path, desc="load files"):
             print(f"{file = }")
             label_on_image_path(file, conf["yolo_object"], conf["save_path"])
 
