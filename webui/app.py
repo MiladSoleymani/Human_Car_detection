@@ -21,7 +21,7 @@ def app():
     data_path_input = gr.inputs.Textbox(label="Data Path")
     save_path_input = gr.inputs.Textbox(label="Save Path")
     model_name_input = gr.inputs.Textbox(label="Name of Model")
-    progress_bar = gr.outputs.ProgressBar(label="Progress")
+    # progress_bar = gr.outputs.ProgressBar(label="Progress")
     run_button = gr.outputs.Button(label="Run Model")
     output_text = gr.outputs.Textbox()
 
