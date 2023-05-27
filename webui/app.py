@@ -44,4 +44,4 @@ def app():
     return iface
 
 
-app().queue().launch(debug=True)
+app().queue().launch(shared=True, debug=True)
