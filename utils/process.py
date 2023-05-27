@@ -123,7 +123,7 @@ def video_process(conf: Dict) -> None:
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 20:
+            if idx == 300:
                 break
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
@@ -284,7 +284,7 @@ def video_process(conf: Dict) -> None:
                                     value["distance"] / time
                                 ) * 3.6
 
-                    print(f"try to calculate the intersection of different areas...")
+                    # print(f"try to calculate the intersection of different areas...")
                     # multi_poly_log
                     for key, value in multi_poly.items():
                         result = cv2.pointPolygonTest(
@@ -294,12 +294,13 @@ def video_process(conf: Dict) -> None:
                         )
 
                         if result >= 0:
+                            print(f"object {tracker_id} pass area {key}")
                             multi_poly_log[key]["tracker_ids"].append(tracker_id)
                             multi_poly_log[key]["object_count"] = len(
                                 set(multi_poly_log[key]["tracker_ids"])
                             )
 
-                    print(f"calculating is finished...")
+                    # print(f"calculating is finished...")
 
             for bbox, _, class_id, tracker_id in detections:
                 if str(tracker_id) not in log_info.keys():
