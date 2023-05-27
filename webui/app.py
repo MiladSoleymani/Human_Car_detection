@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 import gradio as gr
 import time
 from utils.labeling_process import label_data
