@@ -22,18 +22,11 @@ def app():
     save_path_input = gr.Textbox(label="Save Path")
     model_name_input = gr.Textbox(label="Name of Model")
     # progress_bar = gr.outputs.ProgressBar(label="Progress")
-    run_button = gr.Button(label="Run Model")
     output_text = gr.Textbox()
 
     iface = gr.Interface(
         fn=run_model,
-        inputs=[
-            data_path_input,
-            save_path_input,
-            model_name_input,
-            # progress_bar,
-            run_button,
-        ],
+        inputs=[data_path_input, save_path_input, model_name_input],
         outputs=output_text,
         title="Single Page App with Gradio",
         theme="default",
@@ -41,5 +34,4 @@ def app():
     return iface
 
 
-if __name__ == "__main__":
-    app().queue().launch(share=True)
+app().queue().launch(debug=True)
