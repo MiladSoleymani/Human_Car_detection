@@ -80,28 +80,29 @@ def video_process(conf: Dict) -> None:
     )  # extract area and distance
 
     try:
-        lines = extract_line_coordinates(conf["line_path"])  # extract line
+        lines = extract_line_coordinates(conf["line_path"])  # extract linee
+        print(f"{len(lines) = }")
+
+        line_counters = {
+            i: {
+                "line_counter": LineCounter(
+                    start=Point(x=lines[i][0][0], y=lines[i][0][1]),
+                    end=Point(x=lines[i][1][0], y=lines[i][1][1]),
+                ),
+                "line_counter_annotator": LineCounterAnnotator(
+                    thickness=1, text_thickness=1, text_scale=0.4
+                ),
+            }
+            for i in range(len(lines))
+        }
+
     except Exception as e:
         print(f"the erro is {e = }")
         print("the config has been changed")
 
-    print(f"{len(lines) = }")
-
     multi_poly = extract_multi_poly_coordinates(conf["multi_poly"])
     multi_line = extract_multi_line_coordinates(conf["multi_line"])
 
-    line_counters = {
-        i: {
-            "line_counter": LineCounter(
-                start=Point(x=lines[i][0][0], y=lines[i][0][1]),
-                end=Point(x=lines[i][1][0], y=lines[i][1][1]),
-            ),
-            "line_counter_annotator": LineCounterAnnotator(
-                thickness=1, text_thickness=1, text_scale=0.4
-            ),
-        }
-        for i in range(len(lines))
-    }
     in_polygon = {}
     speed = {}
     multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
@@ -432,11 +433,11 @@ def video_process(conf: Dict) -> None:
                     line_thickness,
                 )
 
-            for value in line_counters.values():
-                value["line_counter"].update(detections=detections)
-                value["line_counter_annotator"].annotate(
-                    frame=frame, line_counter=value["line_counter"]
-                )
+            # for value in line_counters.values():
+            #     value["line_counter"].update(detections=detections)
+            #     value["line_counter_annotator"].annotate(
+            #         frame=frame, line_counter=value["line_counter"]
+            #     )
 
             # annotate and display frame
             frame = box_annotator.annotate(
