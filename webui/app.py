@@ -18,9 +18,9 @@ def run_model(data_path, save_path, name_of_model, progress=gr.Progress()):
 
 
 def app():
-    data_path_input = gr.inputs.Textbox(label="Data Path")
-    save_path_input = gr.inputs.Textbox(label="Save Path")
-    model_name_input = gr.inputs.Textbox(label="Name of Model")
+    data_path_input = gr.Textbox(label="Data Path")
+    save_path_input = gr.Textbox(label="Save Path")
+    model_name_input = gr.Textbox(label="Name of Model")
     # progress_bar = gr.outputs.ProgressBar(label="Progress")
     run_button = gr.Button(label="Run Model")
     output_text = gr.Textbox()
@@ -44,4 +44,4 @@ def app():
 
 
 if __name__ == "__main__":
-    app().launch()
+    app().queue().launch()
