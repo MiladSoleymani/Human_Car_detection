@@ -79,7 +79,11 @@ def video_process(conf: Dict) -> None:
         conf["area_path"]
     )  # extract area and distance
 
-    lines = extract_line_coordinates(conf["line_path"])  # extract line
+    try:
+        lines = extract_line_coordinates(conf["line_path"])  # extract line
+    except Exception as e:
+        print(f"the erro is {e = }")
+        print("the config has been changed")
 
     print(f"{len(lines) = }")
 
