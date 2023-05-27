@@ -22,8 +22,8 @@ def app():
     save_path_input = gr.inputs.Textbox(label="Save Path")
     model_name_input = gr.inputs.Textbox(label="Name of Model")
     # progress_bar = gr.outputs.ProgressBar(label="Progress")
-    run_button = gr.outputs.Button(label="Run Model")
-    output_text = gr.outputs.Textbox()
+    run_button = gr.Button(label="Run Model")
+    output_text = gr.Textbox()
 
     iface = gr.Interface(
         fn=run_model,
@@ -31,7 +31,7 @@ def app():
             data_path_input,
             save_path_input,
             model_name_input,
-            progress_bar,
+            # progress_bar,
             run_button,
         ],
         outputs=output_text,
