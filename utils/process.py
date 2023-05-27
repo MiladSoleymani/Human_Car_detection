@@ -295,7 +295,7 @@ def video_process(conf: Dict) -> None:
 
                         if result >= 0:
                             print(f"object {tracker_id} pass area {key}")
-                            multi_poly_log[key]["tracker_ids"].append(tracker_id)
+                            multi_poly_log[key]["tracker_ids"].append(int(tracker_id))
                             multi_poly_log[key]["object_count"] = len(
                                 set(multi_poly_log[key]["tracker_ids"])
                             )
