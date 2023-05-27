@@ -284,6 +284,7 @@ def video_process(conf: Dict) -> None:
                                     value["distance"] / time
                                 ) * 3.6
 
+                    print(f"try to calculate the intersection of different areas...")
                     # multi_poly_log
                     for key, value in multi_poly.items():
                         result = cv2.pointPolygonTest(
@@ -297,6 +298,8 @@ def video_process(conf: Dict) -> None:
                             multi_poly_log[key]["object_count"] = len(
                                 set(multi_poly_log[key]["tracker_ids"])
                             )
+
+                    print(f"calculating is finished...")
 
             for bbox, _, class_id, tracker_id in detections:
                 if str(tracker_id) not in log_info.keys():
