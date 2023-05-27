@@ -1,15 +1,17 @@
 import gradio as gr
+import time
 
 
-def run_model(data_path, save_path, name_of_model, progress):
+def run_model(data_path, save_path, name_of_model, progress=gr.Progress()):
     # Replace this with your model code
     # Run your model with the provided inputs
     # You can use the data_path, save_path, and name_of_model variables here
 
     # Simulating a long-running task
-    for _ in range(10):
-        # Update the progress bar
-        progress.update(progress.value + 10)
+    progress(0, desc="Starting...")
+    time.sleep(1)
+    for _ in progress.tqdm(range(100)):
+        time.sleep(0.1)
 
     # Return the output/result of your model
     return "Model execution completed!"
