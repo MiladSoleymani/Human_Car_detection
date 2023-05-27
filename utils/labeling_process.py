@@ -1,6 +1,6 @@
 import os
 import cv2
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import shutil
 import glob
 
@@ -100,7 +100,7 @@ def label_on_image_path(image_path: str, model_config_path: str, save_path: str)
 
     with open(os.path.join(save_path, f"{filename}.txt"), "w") as txt_file:
         txt_file.write(f"YOLO_OBB\n")
-        for idx, data in enumerate(zip(xywh, class_id)):
+        for idx, data in tqdm(enumerate(zip(xywh, class_id))):
             bbox, output_class = data
             # Write the object's information to the .txt file in the format expected by labelimg
             if idx == (xywh.shape[0] - 1):

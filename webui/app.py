@@ -1,17 +1,22 @@
 import gradio as gr
 import time
+from utils.labeling_process import label_data
 
 
-def run_model(data_path, save_path, name_of_model, progress=gr.Progress()):
+def run_model(
+    data_path, save_path, name_of_model, progress=gr.Progress(track_tqdm=True)
+):
     # Replace this with your model code
     # Run your model with the provided inputs
     # You can use the data_path, save_path, and name_of_model variables here
 
-    # Simulating a long-running task
-    progress(0, desc="Starting...")
-    time.sleep(1)
-    for _ in progress.tqdm(range(100)):
-        time.sleep(0.1)
+    conf = {
+        "data_path": data_path,
+        "save_path": save_path,
+        "yolo_object": name_of_model,
+    }
+
+    label_data(conf)
 
     # Return the output/result of your model
     return "Model execution completed!"
