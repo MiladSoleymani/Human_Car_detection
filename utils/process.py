@@ -31,6 +31,7 @@ from utils.utils import (
     calculate_car_center,
     calculate_down_center,
     combine_frame_with_heatmap,
+    extract_multi_poly_coordinates,
 )
 
 from typing import Dict
@@ -81,6 +82,8 @@ def video_process(conf: Dict) -> None:
 
     print(f"{len(lines) = }")
 
+    multi_poly = extract_multi_poly_coordinates(conf["multi_poly"])
+
     line_counters = {
         i: {
             "line_counter": LineCounter(
@@ -95,6 +98,7 @@ def video_process(conf: Dict) -> None:
     }
     in_polygon = {}
     speed = {}
+    multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
         landmarks_heat_map = np.zeros((video_info.height, video_info.width))
@@ -278,6 +282,20 @@ def video_process(conf: Dict) -> None:
                                     value["distance"] / time
                                 ) * 3.6
 
+                    # multi_poly_log
+                    for key, value in multi_poly.items():
+                        result = cv2.pointPolygonTest(
+                            np.array(value["area"], np.int32),
+                            (int(cx), int(cy)),
+                            False,
+                        )
+
+                        if result >= 0:
+                            multi_poly_log[key]["tracker_ids"].append(tracker_id)
+                            multi_poly_log[key]["object_count"] = len(
+                                set(multi_poly_log[key]["tracker_ids"])
+                            )
+
             for bbox, _, class_id, tracker_id in detections:
                 if str(tracker_id) not in log_info.keys():
                     if class_id == 0:
@@ -378,6 +396,9 @@ def video_process(conf: Dict) -> None:
     cv2.imwrite(
         os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
     )
+
+    with open(os.path.join(conf["log_save_path"], "multi_poly_logs.json"), "w") as file:
+        json.dump(multi_poly_log, file)
 
 
 def video_indoor_process(conf: Dict) -> None:

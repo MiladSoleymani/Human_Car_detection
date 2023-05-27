@@ -122,6 +122,23 @@ def extract_area_coordinates(json_path: str):
     return poly_coord
 
 
+def extract_multi_poly_coordinates(json_path: str):
+    # Read the JSON file
+    with open(json_path, "r") as file:
+        data = json.load(file)
+
+    poly_coord = defaultdict(lambda: {"area": []})
+
+    # Extract the area coordinates
+    for key, value in data.items():
+        poly_coord[key]["area"].extend(
+            [(coord["x"], coord["y"]) for coord in value["coord"]]
+        )
+
+    pprint(poly_coord)
+    return poly_coord
+
+
 def extract_line_coordinates(json_path: str):
     with open(json_path, "r") as file:
         data = json.load(file)
