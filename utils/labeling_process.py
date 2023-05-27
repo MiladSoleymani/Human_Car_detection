@@ -113,7 +113,7 @@ def label_on_image_path(image_path: str, model_config_path: str, save_path: str)
                 )
 
 
-def label_data(conf):
+def label_data(conf, progress=None):
     if os.path.isfile(conf["data_path"]):
         _, extension = extract_folder_name(conf["data_path"])
 

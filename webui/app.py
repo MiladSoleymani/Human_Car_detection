@@ -21,7 +21,7 @@ def run_model(
         "yolo_object": name_of_model,
     }
 
-    label_data(conf)
+    label_data(conf, progress)
 
     # Return the output/result of your model
     return "Model execution completed!"
