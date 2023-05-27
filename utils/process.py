@@ -361,6 +361,11 @@ def video_process(conf: Dict) -> None:
                     frame, [np.array(value["area"], np.int32)], True, (15, 228, 10), 3
                 )
 
+            for key, value in multi_poly.items():
+                cv2.polylines(
+                    frame, [np.array(value["area"], np.int32)], True, (15, 228, 10), 3
+                )
+
             for value in line_counters.values():
                 value["line_counter"].update(detections=detections)
                 value["line_counter_annotator"].annotate(
