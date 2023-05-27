@@ -37,11 +37,9 @@ def app():
         outputs=output_text,
         title="Single Page App with Gradio",
         theme="default",
-        layout="vertical",
-        verbose=True,
     )
     return iface
 
 
 if __name__ == "__main__":
-    app().queue().launch()
+    app().queue().launch(share=True)
