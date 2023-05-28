@@ -455,9 +455,6 @@ def video_process(conf: Dict) -> None:
         os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
     )
 
-    with open(os.path.join(conf["log_save_path"], "multi_poly_logs.json"), "w") as file:
-        json.dump(multi_poly_log, file)
-
 
 def video_indoor_process(conf: Dict) -> None:
     # Load yolo pretrained model
