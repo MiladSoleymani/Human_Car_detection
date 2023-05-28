@@ -278,14 +278,15 @@ def video_process(conf: Dict) -> None:
                             False,
                         )
 
+                        main_key = str(tracker_id) + "_" + str(key)
                         if result >= 0:
-                            if str(tracker_id) in in_polygon.keys():
-                                in_polygon[str(tracker_id)] += 1
+                            if main_key in in_polygon.keys():
+                                in_polygon[main_key] += 1
                             else:
-                                in_polygon[str(tracker_id)] = 1
+                                in_polygon[main_key] = 1
                         elif result < 0:
-                            if str(tracker_id) in in_polygon.keys():
-                                time = in_polygon[str(tracker_id)] / video_info.fps
+                            if main_key in in_polygon.keys():
+                                time = in_polygon[main_key] / video_info.fps
                                 speed[str(tracker_id)] = (
                                     value["distance"] / time
                                 ) * 3.6
