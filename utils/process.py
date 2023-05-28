@@ -202,7 +202,7 @@ def video_process(conf: Dict) -> None:
                             / video_info.fps
                         )
 
-                if idx % conf["log_save_frame_steps"] == 0:
+                if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                     log(log_eye_info, "log_eye_info_", conf["log_save_path"])
 
                     log_eye_info = defaultdict(
@@ -343,7 +343,7 @@ def video_process(conf: Dict) -> None:
                     if class_id != 0 and str(tracker_id) in speed.keys():
                         log_info[str(tracker_id)]["speed"] = str(speed[str(tracker_id)])
 
-            if idx % conf["log_save_frame_steps"] == 0:
+            if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                 log(log_info, "person_car_", conf["log_save_path"])
                 log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
                 log(multi_line_log, "multi_line_log_", conf["log_save_path"])
@@ -597,7 +597,7 @@ def video_indoor_process(conf: Dict) -> None:
                         / video_info.fps
                     )
 
-            if idx % conf["log_save_frame_steps"] == 0:
+            if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                 log(log_info, "indoor_", conf["log_save_path"])
 
                 log_info = defaultdict(
