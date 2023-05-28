@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import os
-import json
 from collections import defaultdict
 
 from supervision.draw.color import ColorPalette
@@ -19,6 +18,7 @@ from dataclasses import dataclass
 from deepface import DeepFace
 
 from models.yolo import load_yolo, YOLOv8_face
+from models.line_counter import LineCounter, LineCounterAnnotator
 
 from utils.utils import (
     find_best_region,
@@ -82,6 +82,19 @@ def video_process(conf: Dict) -> None:
         lines = extract_line_coordinates(conf["line_path"])  # extract linee
         print(f"{len(lines) = }")
 
+        line_counters = {
+            i: {
+                "line_counter": LineCounter(
+                    start=Point(x=lines[i][0][0], y=lines[i][0][1]),
+                    end=Point(x=lines[i][1][0], y=lines[i][1][1]),
+                ),
+                "line_counter_annotator": LineCounterAnnotator(
+                    thickness=1, text_thickness=1, text_scale=0.4
+                ),
+            }
+            for i in range(len(lines))
+        }
+
     except Exception as e:
         print(f"the erro is {e = }")
         print("the config has been changed")
@@ -91,8 +104,6 @@ def video_process(conf: Dict) -> None:
 
     in_polygon = {}
     speed = {}
-    multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
-
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
         landmarks_heat_map = np.zeros((video_info.height, video_info.width))
@@ -114,11 +125,13 @@ def video_process(conf: Dict) -> None:
                 "center_eye_loc": [],
             }
         )
+
+        multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
+        multi_line_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
+
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            # if idx == 400:
-            #     break
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
@@ -303,8 +316,6 @@ def video_process(conf: Dict) -> None:
                                 set(multi_line_log[key]["tracker_ids"])
                             )
 
-                    # print(f"calculating is finished...")
-
             for bbox, _, class_id, tracker_id in detections:
                 if str(tracker_id) not in log_info.keys():
                     if class_id == 0:
@@ -330,6 +341,7 @@ def video_process(conf: Dict) -> None:
             if idx % conf["log_save_frame_steps"] == 0:
                 log(log_info, "person_car_", conf["log_save_path"])
                 log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
+                log(multi_line_log, "multi_line_log_", conf["log_save_path"])
 
                 log_info = defaultdict(
                     lambda: {
@@ -343,10 +355,12 @@ def video_process(conf: Dict) -> None:
                 multi_poly_log = defaultdict(
                     lambda: {"tracker_ids": [], "object_count": 0}
                 )
+                multi_line_log = defaultdict(
+                    lambda: {"tracker_ids": [], "object_count": 0}
+                )
 
-            elif idx == (video_info.total_frames - 5):
+            if idx == (video_info.total_frames - 5):
                 log(log_info, "person_car_", conf["log_save_path"])
-                log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
                 break
 
             # format custom labels
@@ -418,7 +432,6 @@ def video_process(conf: Dict) -> None:
                     font_color,
                     line_thickness,
                 )
-
             # annotate and display frame
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels
@@ -581,6 +594,7 @@ def video_indoor_process(conf: Dict) -> None:
 
             if idx % conf["log_save_frame_steps"] == 0:
                 log(log_info, "indoor_", conf["log_save_path"])
+
                 log_info = defaultdict(
                     lambda: {
                         "age": None,
@@ -592,7 +606,7 @@ def video_indoor_process(conf: Dict) -> None:
                     }
                 )
 
-            elif idx == (video_info.total_frames - 1):
+            elif idx == (video_info.total_frames - 5):
                 log(log_info, "indoor_", conf["log_save_path"])
 
             frame = face_model.draw_detections(
