@@ -134,7 +134,7 @@ def video_process(conf: Dict) -> None:
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
             # face model prediction on single frame
 
-            if idx == 300:
+            if idx == 200:
                 break
 
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
@@ -277,8 +277,6 @@ def video_process(conf: Dict) -> None:
                             (int(cx), int(cy)),
                             False,
                         )
-
-                        print("result: ", result)
 
                         if result >= 0:
                             if str(tracker_id) in in_polygon.keys():
