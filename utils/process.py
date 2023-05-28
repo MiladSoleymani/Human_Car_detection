@@ -134,7 +134,7 @@ def video_process(conf: Dict) -> None:
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
             # face model prediction on single frame
 
-            if idx == 200:
+            if idx == 100:
                 break
 
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
