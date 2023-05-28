@@ -19,7 +19,6 @@ from dataclasses import dataclass
 from deepface import DeepFace
 
 from models.yolo import load_yolo, YOLOv8_face
-from models.line_counter import LineCounter, LineCounterAnnotator
 
 from utils.utils import (
     find_best_region,
@@ -83,19 +82,6 @@ def video_process(conf: Dict) -> None:
         lines = extract_line_coordinates(conf["line_path"])  # extract linee
         print(f"{len(lines) = }")
 
-        line_counters = {
-            i: {
-                "line_counter": LineCounter(
-                    start=Point(x=lines[i][0][0], y=lines[i][0][1]),
-                    end=Point(x=lines[i][1][0], y=lines[i][1][1]),
-                ),
-                "line_counter_annotator": LineCounterAnnotator(
-                    thickness=1, text_thickness=1, text_scale=0.4
-                ),
-            }
-            for i in range(len(lines))
-        }
-
     except Exception as e:
         print(f"the erro is {e = }")
         print("the config has been changed")
@@ -106,7 +92,6 @@ def video_process(conf: Dict) -> None:
     in_polygon = {}
     speed = {}
     multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
-    multi_line_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
 
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
@@ -200,12 +185,7 @@ def video_process(conf: Dict) -> None:
                             / video_info.fps
                         )
 
-                count = 0
-                for detection_id in log_eye_info.keys():
-                    if log_eye_info[str(detection_id)]["eye_time_eta"] != None:
-                        count += 1
-
-                if count > conf["log_save_steps"]:
+                if idx % conf["log_save_frame_steps"] == 0:
                     log(log_eye_info, "log_eye_info_", conf["log_save_path"])
 
                     log_eye_info = defaultdict(
@@ -217,7 +197,7 @@ def video_process(conf: Dict) -> None:
                     )
                     # break
 
-                if idx == (video_info.total_frames - 1):
+                elif idx == (video_info.total_frames - 5):
                     log(log_eye_info, "log_eye_info_", conf["log_save_path"])
                     break
 
@@ -347,8 +327,9 @@ def video_process(conf: Dict) -> None:
                     if class_id != 0 and str(tracker_id) in speed.keys():
                         log_info[str(tracker_id)]["speed"] = str(speed[str(tracker_id)])
 
-            if len(log_info.keys()) > conf["log_save_steps"]:
+            if idx % conf["log_save_frame_steps"] == 0:
                 log(log_info, "person_car_", conf["log_save_path"])
+                log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
 
                 log_info = defaultdict(
                     lambda: {
@@ -359,8 +340,13 @@ def video_process(conf: Dict) -> None:
                     }
                 )
 
-            if idx == (video_info.total_frames - 1):
+                multi_poly_log = defaultdict(
+                    lambda: {"tracker_ids": [], "object_count": 0}
+                )
+
+            elif idx == (video_info.total_frames - 5):
                 log(log_info, "person_car_", conf["log_save_path"])
+                log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
                 break
 
             # format custom labels
@@ -433,12 +419,6 @@ def video_process(conf: Dict) -> None:
                     line_thickness,
                 )
 
-            # for value in line_counters.values():
-            #     value["line_counter"].update(detections=detections)
-            #     value["line_counter_annotator"].annotate(
-            #         frame=frame, line_counter=value["line_counter"]
-            #     )
-
             # annotate and display frame
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels
@@ -477,9 +457,6 @@ def video_process(conf: Dict) -> None:
 
     with open(os.path.join(conf["log_save_path"], "multi_poly_logs.json"), "w") as file:
         json.dump(multi_poly_log, file)
-
-    with open(os.path.join(conf["log_save_path"], "multi_line_logs.json"), "w") as file:
-        json.dump(multi_line_log, file)
 
 
 def video_indoor_process(conf: Dict) -> None:
@@ -605,14 +582,8 @@ def video_indoor_process(conf: Dict) -> None:
                         / video_info.fps
                     )
 
-            count = 0
-            for detection_id in log_info.keys():
-                if log_info[str(detection_id)]["eye_time_eta"] != None:
-                    count += 1
-
-            if count > conf["log_save_steps"]:
+            if idx % conf["log_save_frame_steps"] == 0:
                 log(log_info, "indoor_", conf["log_save_path"])
-
                 log_info = defaultdict(
                     lambda: {
                         "age": None,

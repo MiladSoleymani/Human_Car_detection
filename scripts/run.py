@@ -57,7 +57,7 @@ def parse_args() -> None:
     )
 
     parser.add_argument(
-        "--log_save_steps",
+        "--log_save_frame_steps",
         type=int,
         default=10000,
     )
