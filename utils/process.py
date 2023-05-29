@@ -105,8 +105,12 @@ def video_process(conf: Dict) -> None:
 
     in_polygon = {}
     speed = {}
-    multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
-    multi_line_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
+    multi_poly_log = defaultdict(
+        lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
+    )
+    multi_line_log = defaultdict(
+        lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
+    )
 
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
@@ -132,8 +136,8 @@ def video_process(conf: Dict) -> None:
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            # if idx == 400:
-            #     break
+            if idx == 500:
+                break
             # face model prediction on single frame
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
@@ -295,32 +299,44 @@ def video_process(conf: Dict) -> None:
 
                     # print(f"try to calculate the intersection of different areas...")
                     # multi_poly_log
-                    for key, value in multi_poly.items():
-                        result = cv2.pointPolygonTest(
-                            np.array(value["area"], np.int32),
-                            (int(cx), int(cy)),
-                            False,
-                        )
+                for key, value in multi_poly.items():
+                    result = cv2.pointPolygonTest(
+                        np.array(value["area"], np.int32),
+                        (int(cx), int(cy)),
+                        False,
+                    )
 
-                        if result >= 0:
-                            print(f"object {tracker_id} pass area {key}")
-                            multi_poly_log[key]["tracker_ids"].append(int(tracker_id))
-                            multi_poly_log[key]["object_count"] = len(
-                                set(multi_poly_log[key]["tracker_ids"])
+                    if result >= 0:
+                        print(f"object {tracker_id} pass area {key}")
+                        multi_poly_log[key]["tracker_ids"][
+                            CLASS_NAMES_DICT[class_id]
+                        ].append(int(tracker_id))
+
+                        for detection_class in multi_poly_log[key][
+                            "tracker_ids"
+                        ].keys():
+                            multi_poly_log[key]["object_count"][detection_class] = len(
+                                set(multi_poly_log[key]["tracker_ids"][detection_class])
                             )
 
-                    for key, value in multi_line.items():
-                        result = cv2.pointPolygonTest(
-                            np.array(value["area"], np.int32),
-                            (int(cx), int(cy)),
-                            False,
-                        )
+                for key, value in multi_line.items():
+                    result = cv2.pointPolygonTest(
+                        np.array(value["area"], np.int32),
+                        (int(cx), int(cy)),
+                        False,
+                    )
 
-                        if result >= 0:
-                            print(f"object {tracker_id} pass area {key}")
-                            multi_line_log[key]["tracker_ids"].append(int(tracker_id))
-                            multi_line_log[key]["object_count"] = len(
-                                set(multi_line_log[key]["tracker_ids"])
+                    if result >= 0:
+                        print(f"object {tracker_id} pass area {key}")
+                        multi_line_log[key]["tracker_ids"][
+                            CLASS_NAMES_DICT[class_id]
+                        ].append(int(tracker_id))
+
+                        for detection_class in multi_line_log[key][
+                            "tracker_ids"
+                        ].keys():
+                            multi_line_log[key]["object_count"][detection_class] = len(
+                                set(multi_line_log[key]["tracker_ids"][detection_class])
                             )
 
                     # print(f"calculating is finished...")
@@ -416,22 +432,23 @@ def video_process(conf: Dict) -> None:
 
             # Iterate over the values and write them with spaces
             for key, value in multi_line_log.items():
-                list_text = f"{key}" + " : " + str(value["object_count"]) + " "
-                list_text_size, _ = cv2.getTextSize(
-                    list_text, font, font_scale, line_thickness
-                )
-                list_text_x += list_text_size[
-                    0
-                ]  # Update the x-position for the next value
-                cv2.putText(
-                    frame,
-                    list_text,
-                    (list_text_x, list_text_y),
-                    font,
-                    font_scale,
-                    font_color,
-                    line_thickness,
-                )
+                for sub_key, sub_value in value.items():
+                    list_text = f"{sub_key}" + " : " + str(sub_value) + " "
+                    list_text_size, _ = cv2.getTextSize(
+                        list_text, font, font_scale, line_thickness
+                    )
+                    list_text_x += list_text_size[
+                        0
+                    ]  # Update the x-position for the next value
+                    cv2.putText(
+                        frame,
+                        list_text,
+                        (list_text_x, list_text_y),
+                        font,
+                        font_scale,
+                        font_color,
+                        line_thickness,
+                    )
 
             # for value in line_counters.values():
             #     value["line_counter"].update(detections=detections)
