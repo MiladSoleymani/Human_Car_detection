@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import os
-import json
 from collections import defaultdict
 
 from supervision.draw.color import ColorPalette
@@ -105,13 +104,6 @@ def video_process(conf: Dict) -> None:
 
     in_polygon = {}
     speed = {}
-    multi_poly_log = defaultdict(
-        lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
-    )
-    multi_line_log = defaultdict(
-        lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
-    )
-
     # open target video file
     with VideoSink(conf["video_save_path"], video_info) as sink:
         landmarks_heat_map = np.zeros((video_info.height, video_info.width))
@@ -133,12 +125,18 @@ def video_process(conf: Dict) -> None:
                 "center_eye_loc": [],
             }
         )
+
+        multi_poly_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
+        multi_line_log = defaultdict(lambda: {"tracker_ids": [], "object_count": 0})
+
         print(f"{video_info.total_frames = }")
         # loop over video frames
         for idx, frame in enumerate(tqdm(generator, total=video_info.total_frames)):
-            if idx == 500:
-                break
             # face model prediction on single frame
+
+            if idx == 2500:
+                break
+
             boxes, scores, class_ids, kpts, _ = face_model.detect(frame)
             face_xyxy = face_model.convert_xywh_to_xyxy(boxes)
 
@@ -204,12 +202,7 @@ def video_process(conf: Dict) -> None:
                             / video_info.fps
                         )
 
-                count = 0
-                for detection_id in log_eye_info.keys():
-                    if log_eye_info[str(detection_id)]["eye_time_eta"] != None:
-                        count += 1
-
-                if count > conf["log_save_steps"]:
+                if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                     log(log_eye_info, "log_eye_info_", conf["log_save_path"])
 
                     log_eye_info = defaultdict(
@@ -221,7 +214,7 @@ def video_process(conf: Dict) -> None:
                     )
                     # break
 
-                if idx == (video_info.total_frames - 1):
+                elif idx == (video_info.total_frames - 5):
                     log(log_eye_info, "log_eye_info_", conf["log_save_path"])
                     break
 
@@ -285,61 +278,48 @@ def video_process(conf: Dict) -> None:
                             False,
                         )
 
+                        main_key = str(tracker_id) + "_" + str(key)
                         if result >= 0:
-                            if str(tracker_id) in in_polygon.keys():
-                                in_polygon[str(tracker_id)] += 1
+                            if main_key in in_polygon.keys():
+                                in_polygon[main_key] += 1
                             else:
-                                in_polygon[str(tracker_id)] = 1
+                                in_polygon[main_key] = 1
                         elif result < 0:
-                            if str(tracker_id) in in_polygon.keys():
-                                time = in_polygon[str(tracker_id)] / video_info.fps
+                            if main_key in in_polygon.keys():
+                                time = in_polygon[main_key] / video_info.fps
                                 speed[str(tracker_id)] = (
                                     value["distance"] / time
                                 ) * 3.6
 
                     # print(f"try to calculate the intersection of different areas...")
                     # multi_poly_log
-                for key, value in multi_poly.items():
-                    result = cv2.pointPolygonTest(
-                        np.array(value["area"], np.int32),
-                        (int(cx), int(cy)),
-                        False,
-                    )
+                    for key, value in multi_poly.items():
+                        result = cv2.pointPolygonTest(
+                            np.array(value["area"], np.int32),
+                            (int(cx), int(cy)),
+                            False,
+                        )
 
-                    if result >= 0:
-                        print(f"object {tracker_id} pass area {key}")
-                        multi_poly_log[key]["tracker_ids"][
-                            CLASS_NAMES_DICT[class_id]
-                        ].append(int(tracker_id))
-
-                        for detection_class in multi_poly_log[key][
-                            "tracker_ids"
-                        ].keys():
-                            multi_poly_log[key]["object_count"][detection_class] = len(
-                                set(multi_poly_log[key]["tracker_ids"][detection_class])
+                        if result >= 0:
+                            print(f"object {tracker_id} pass area {key}")
+                            multi_poly_log[key]["tracker_ids"].append(int(tracker_id))
+                            multi_poly_log[key]["object_count"] = len(
+                                set(multi_poly_log[key]["tracker_ids"])
                             )
 
-                for key, value in multi_line.items():
-                    result = cv2.pointPolygonTest(
-                        np.array(value["area"], np.int32),
-                        (int(cx), int(cy)),
-                        False,
-                    )
+                    for key, value in multi_line.items():
+                        result = cv2.pointPolygonTest(
+                            np.array(value["area"], np.int32),
+                            (int(cx), int(cy)),
+                            False,
+                        )
 
-                    if result >= 0:
-                        print(f"object {tracker_id} pass area {key}")
-                        multi_line_log[key]["tracker_ids"][
-                            CLASS_NAMES_DICT[class_id]
-                        ].append(int(tracker_id))
-
-                        for detection_class in multi_line_log[key][
-                            "tracker_ids"
-                        ].keys():
-                            multi_line_log[key]["object_count"][detection_class] = len(
-                                set(multi_line_log[key]["tracker_ids"][detection_class])
+                        if result >= 0:
+                            print(f"object {tracker_id} pass area {key}")
+                            multi_line_log[key]["tracker_ids"].append(int(tracker_id))
+                            multi_line_log[key]["object_count"] = len(
+                                set(multi_line_log[key]["tracker_ids"])
                             )
-
-                    # print(f"calculating is finished...")
 
             for bbox, _, class_id, tracker_id in detections:
                 if str(tracker_id) not in log_info.keys():
@@ -363,8 +343,10 @@ def video_process(conf: Dict) -> None:
                     if class_id != 0 and str(tracker_id) in speed.keys():
                         log_info[str(tracker_id)]["speed"] = str(speed[str(tracker_id)])
 
-            if len(log_info.keys()) > conf["log_save_steps"]:
+            if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                 log(log_info, "person_car_", conf["log_save_path"])
+                log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
+                log(multi_line_log, "multi_line_log_", conf["log_save_path"])
 
                 log_info = defaultdict(
                     lambda: {
@@ -375,7 +357,14 @@ def video_process(conf: Dict) -> None:
                     }
                 )
 
-            if idx == (video_info.total_frames - 1):
+                multi_poly_log = defaultdict(
+                    lambda: {"tracker_ids": [], "object_count": 0}
+                )
+                multi_line_log = defaultdict(
+                    lambda: {"tracker_ids": [], "object_count": 0}
+                )
+
+            if idx == (video_info.total_frames - 5):
                 log(log_info, "person_car_", conf["log_save_path"])
                 break
 
@@ -432,30 +421,22 @@ def video_process(conf: Dict) -> None:
 
             # Iterate over the values and write them with spaces
             for key, value in multi_line_log.items():
-                for sub_key, sub_value in value.items():
-                    list_text = f"{sub_key}" + " : " + str(sub_value) + " "
-                    list_text_size, _ = cv2.getTextSize(
-                        list_text, font, font_scale, line_thickness
-                    )
-                    list_text_x += list_text_size[
-                        0
-                    ]  # Update the x-position for the next value
-                    cv2.putText(
-                        frame,
-                        list_text,
-                        (list_text_x, list_text_y),
-                        font,
-                        font_scale,
-                        font_color,
-                        line_thickness,
-                    )
-
-            # for value in line_counters.values():
-            #     value["line_counter"].update(detections=detections)
-            #     value["line_counter_annotator"].annotate(
-            #         frame=frame, line_counter=value["line_counter"]
-            #     )
-
+                list_text = f"{key}" + " : " + str(value["object_count"]) + " "
+                list_text_size, _ = cv2.getTextSize(
+                    list_text, font, font_scale, line_thickness
+                )
+                list_text_x += list_text_size[
+                    0
+                ]  # Update the x-position for the next value
+                cv2.putText(
+                    frame,
+                    list_text,
+                    (list_text_x, list_text_y),
+                    font,
+                    font_scale,
+                    font_color,
+                    line_thickness,
+                )
             # annotate and display frame
             frame = box_annotator.annotate(
                 frame=frame, detections=detections, labels=labels
@@ -491,12 +472,6 @@ def video_process(conf: Dict) -> None:
     cv2.imwrite(
         os.path.join(conf["heatmap_savepath"], "heatmap_eyes.jpg"), heat_map_color
     )
-
-    with open(os.path.join(conf["log_save_path"], "multi_poly_logs.json"), "w") as file:
-        json.dump(multi_poly_log, file)
-
-    with open(os.path.join(conf["log_save_path"], "multi_line_logs.json"), "w") as file:
-        json.dump(multi_line_log, file)
 
 
 def video_indoor_process(conf: Dict) -> None:
@@ -607,8 +582,6 @@ def video_indoor_process(conf: Dict) -> None:
                         face_detections, demographies_mtcnn
                     )  # finding best faces' bboxes
 
-                    print("best_detections: ", best_detections)
-
                     for id in best_detections.keys():
                         log_info[str(id)]["age"] = best_detections[str(id)]["age"]
                         log_info[str(id)]["gender"] = best_detections[str(id)][
@@ -622,12 +595,7 @@ def video_indoor_process(conf: Dict) -> None:
                         / video_info.fps
                     )
 
-            count = 0
-            for detection_id in log_info.keys():
-                if log_info[str(detection_id)]["eye_time_eta"] != None:
-                    count += 1
-
-            if count > conf["log_save_steps"]:
+            if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                 log(log_info, "indoor_", conf["log_save_path"])
 
                 log_info = defaultdict(
@@ -641,7 +609,7 @@ def video_indoor_process(conf: Dict) -> None:
                     }
                 )
 
-            elif idx == (video_info.total_frames - 1):
+            elif idx == (video_info.total_frames - 5):
                 log(log_info, "indoor_", conf["log_save_path"])
 
             frame = face_model.draw_detections(
