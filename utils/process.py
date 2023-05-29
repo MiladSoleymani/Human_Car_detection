@@ -308,6 +308,7 @@ def video_process(conf: Dict) -> None:
                         multi_poly_log[key]["tracker_ids"][
                             CLASS_NAMES_DICT[class_id]
                         ].append(int(tracker_id))
+                        print(f"{multi_poly_log[key]['tracker_ids'].keys() = }")
 
                         for detection_class in multi_poly_log[key][
                             "tracker_ids"
@@ -329,7 +330,8 @@ def video_process(conf: Dict) -> None:
                             CLASS_NAMES_DICT[class_id]
                         ].append(int(tracker_id))
 
-                        for detection_class in multi_poly_log[key][
+                        print(f"{multi_line_log[key]['tracker_ids'].keys() = }")
+                        for detection_class in multi_line_log[key][
                             "tracker_ids"
                         ].keys():
                             multi_line_log[key]["object_count"][detection_class] = len(
@@ -373,10 +375,16 @@ def video_process(conf: Dict) -> None:
                 )
 
                 multi_poly_log = defaultdict(
-                    lambda: {"tracker_ids": [], "object_count": 0}
+                    lambda: {
+                        "tracker_ids": defaultdict(list),
+                        "object_count": defaultdict(int),
+                    }
                 )
                 multi_line_log = defaultdict(
-                    lambda: {"tracker_ids": [], "object_count": 0}
+                    lambda: {
+                        "tracker_ids": defaultdict(list),
+                        "object_count": defaultdict(int),
+                    }
                 )
 
             if idx == (video_info.total_frames - 5):
