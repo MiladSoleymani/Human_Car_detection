@@ -11,6 +11,7 @@ from utils.process import (
 from utils.utils import modify_path_for_indoor
 
 import argparse
+from datetime import datetime, date, time
 
 from typing import Dict
 
@@ -30,6 +31,24 @@ def run(conf: Dict) -> None:
         print(f"new path: {conf['video_save_path']}")
 
         video_indoor_process(conf)
+
+
+def parse_date(date_str):
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(
+            "Invalid date format. Please use YYYY-MM-DD."
+        ) from e
+
+
+def parse_time(time_str):
+    try:
+        return datetime.strptime(time_str, "%H:%M").time()
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(
+            "Invalid time format. Please use HH:MM."
+        ) from e
 
 
 def parse_args() -> None:
@@ -117,6 +136,21 @@ def parse_args() -> None:
         type=str,
         default=os.getcwd(),
         help="determine a line area",
+    )
+
+    parser.add_argument(
+        "-d",
+        "--date",
+        type=parse_date,
+        default=date.today(),
+        help="Specify the date in the format YYYY-MM-DD",
+    )
+    parser.add_argument(
+        "-t",
+        "--time",
+        type=parse_time,
+        default=datetime.now().time().strftime("%H:%M"),
+        help="Specify the time in the format HH:MM",
     )
 
     opts = parser.parse_args()

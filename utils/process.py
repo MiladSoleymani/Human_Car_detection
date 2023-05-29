@@ -111,6 +111,8 @@ def video_process(conf: Dict) -> None:
 
         log_info = defaultdict(
             lambda: {
+                "date": conf["date"],
+                "time": conf["time"],
                 "person_car": None,
                 "speed": None,
                 "car_type": None,
@@ -120,6 +122,8 @@ def video_process(conf: Dict) -> None:
 
         log_eye_info = defaultdict(
             lambda: {
+                "date": conf["date"],
+                "time": conf["time"],
                 "eye_detected_count": 0,
                 "eye_time_eta": None,
                 "center_eye_loc": [],
