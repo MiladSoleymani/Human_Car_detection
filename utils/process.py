@@ -305,10 +305,15 @@ def video_process(conf: Dict) -> None:
 
                     if result >= 0:
                         print(f"object {tracker_id} pass area {key}")
-                        multi_poly_log[key]["tracker_ids"][
-                            CLASS_NAMES_DICT[class_id]
-                        ].append(int(tracker_id))
-                        print(f"{multi_poly_log[key]['tracker_ids'].keys() = }")
+                        if (
+                            int(tracker_id)
+                            not in multi_poly_log[key]["tracker_ids"][
+                                CLASS_NAMES_DICT[class_id]
+                            ]
+                        ):
+                            multi_poly_log[key]["tracker_ids"][
+                                CLASS_NAMES_DICT[class_id]
+                            ].append(int(tracker_id))
 
                         for detection_class in multi_poly_log[key][
                             "tracker_ids"
@@ -326,11 +331,16 @@ def video_process(conf: Dict) -> None:
 
                     if result >= 0:
                         print(f"object {tracker_id} pass area {key}")
-                        multi_line_log[key]["tracker_ids"][
-                            CLASS_NAMES_DICT[class_id]
-                        ].append(int(tracker_id))
+                        if (
+                            int(tracker_id)
+                            not in multi_line_log[key]["tracker_ids"][
+                                CLASS_NAMES_DICT[class_id]
+                            ]
+                        ):
+                            multi_line_log[key]["tracker_ids"][
+                                CLASS_NAMES_DICT[class_id]
+                            ].append(int(tracker_id))
 
-                        print(f"{multi_line_log[key]['tracker_ids'].keys() = }")
                         for detection_class in multi_line_log[key][
                             "tracker_ids"
                         ].keys():
