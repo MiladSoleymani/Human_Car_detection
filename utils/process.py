@@ -312,7 +312,7 @@ def video_process(conf: Dict) -> None:
                         ).time()
 
                         multi_poly_log[key]["time_ids"][
-                            CLASS_NAMES_DICT[class_id] + str(tracker_id)
+                            CLASS_NAMES_DICT[class_id] + "_" + str(tracker_id)
                         ].append(str(result_time))
 
                         print(f"object {tracker_id} pass area {key}")
