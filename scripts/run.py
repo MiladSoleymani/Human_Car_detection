@@ -149,7 +149,7 @@ def parse_args() -> None:
         "-t",
         "--time",
         type=parse_time,
-        default=datetime.now().time().strftime("%H:%M"),
+        default=datetime.now().time().strftime("%H:%M:%S"),
         help="Specify the time in the format HH:MM",
     )
 

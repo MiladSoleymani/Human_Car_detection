@@ -34,6 +34,7 @@ from utils.utils import (
 )
 
 from typing import Dict
+from datetime import datetime, timedelta
 
 
 @dataclass(frozen=True)
@@ -117,7 +118,11 @@ def video_process(conf: Dict) -> None:
         )
 
         multi_poly_log = defaultdict(
-            lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
+            lambda: {
+                "tracker_ids": defaultdict(list),
+                "time_ids": defaultdict(list),
+                "object_count": defaultdict(int),
+            }
         )
         multi_line_log = defaultdict(
             lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
@@ -293,6 +298,23 @@ def video_process(conf: Dict) -> None:
                     )
 
                     if result >= 0:
+                        integer_value = int(idx / video_info.fps)
+                        time_difference = timedelta(seconds=integer_value)
+
+                        current_datetime = datetime.strptime(
+                            str(conf["time"]), "%H:%M:%S"
+                        )
+                        current_time = current_datetime.time()
+
+                        result_time = (
+                            datetime.combine(datetime.today(), current_time)
+                            + time_difference
+                        ).time()
+
+                        multi_poly_log[key]["time_ids"][
+                            CLASS_NAMES_DICT[class_id] + tracker_id
+                        ].append(str(result_time))
+
                         print(f"object {tracker_id} pass area {key}")
                         if (
                             int(tracker_id)
@@ -376,6 +398,7 @@ def video_process(conf: Dict) -> None:
                 multi_poly_log = defaultdict(
                     lambda: {
                         "tracker_ids": defaultdict(list),
+                        "time_ids": defaultdict(list),
                         "object_count": defaultdict(int),
                     }
                 )
