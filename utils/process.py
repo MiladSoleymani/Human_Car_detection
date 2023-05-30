@@ -82,19 +82,6 @@ def video_process(conf: Dict) -> None:
         lines = extract_line_coordinates(conf["line_path"])  # extract linee
         print(f"{len(lines) = }")
 
-        line_counters = {
-            i: {
-                "line_counter": LineCounter(
-                    start=Point(x=lines[i][0][0], y=lines[i][0][1]),
-                    end=Point(x=lines[i][1][0], y=lines[i][1][1]),
-                ),
-                "line_counter_annotator": LineCounterAnnotator(
-                    thickness=1, text_thickness=1, text_scale=0.4
-                ),
-            }
-            for i in range(len(lines))
-        }
-
     except Exception as e:
         print(f"the erro is {e = }")
         print("the config has been changed")
@@ -375,6 +362,10 @@ def video_process(conf: Dict) -> None:
 
             if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                 log(log_info, "person_car_", conf["log_save_path"])
+
+                multi_poly_log["tracker_ids"] = list(multi_poly_log["tracker_ids"])
+                multi_line_log["tracker_ids"] = list(multi_poly_log["tracker_ids"])
+
                 log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
                 log(multi_line_log, "multi_line_log_", conf["log_save_path"])
 
