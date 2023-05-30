@@ -18,7 +18,6 @@ from dataclasses import dataclass
 from deepface import DeepFace
 
 from models.yolo import load_yolo, YOLOv8_face
-from models.line_counter import LineCounter, LineCounterAnnotator
 
 from utils.utils import (
     find_best_region,
@@ -118,10 +117,10 @@ def video_process(conf: Dict) -> None:
         )
 
         multi_poly_log = defaultdict(
-            lambda: {"tracker_ids": defaultdict(set), "object_count": defaultdict(int)}
+            lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
         )
         multi_line_log = defaultdict(
-            lambda: {"tracker_ids": defaultdict(set), "object_count": defaultdict(int)}
+            lambda: {"tracker_ids": defaultdict(list), "object_count": defaultdict(int)}
         )
 
         print(f"{video_info.total_frames = }")
@@ -303,13 +302,13 @@ def video_process(conf: Dict) -> None:
                         ):
                             multi_poly_log[key]["tracker_ids"][
                                 CLASS_NAMES_DICT[class_id]
-                            ].add(int(tracker_id))
+                            ].append(int(tracker_id))
 
                         for detection_class in multi_poly_log[key][
                             "tracker_ids"
                         ].keys():
                             multi_poly_log[key]["object_count"][detection_class] = len(
-                                multi_poly_log[key]["tracker_ids"][detection_class]
+                                set(multi_poly_log[key]["tracker_ids"][detection_class])
                             )
 
                 for key, value in multi_line.items():
@@ -329,13 +328,13 @@ def video_process(conf: Dict) -> None:
                         ):
                             multi_line_log[key]["tracker_ids"][
                                 CLASS_NAMES_DICT[class_id]
-                            ].add(int(tracker_id))
+                            ].append(int(tracker_id))
 
                         for detection_class in multi_line_log[key][
                             "tracker_ids"
                         ].keys():
                             multi_line_log[key]["object_count"][detection_class] = len(
-                                multi_line_log[key]["tracker_ids"][detection_class]
+                                set(multi_line_log[key]["tracker_ids"][detection_class])
                             )
 
             for bbox, _, class_id, tracker_id in detections:
@@ -362,10 +361,6 @@ def video_process(conf: Dict) -> None:
 
             if idx % conf["log_save_frame_steps"] == 0 and idx != 0:
                 log(log_info, "person_car_", conf["log_save_path"])
-
-                multi_poly_log["tracker_ids"] = list(multi_poly_log["tracker_ids"])
-                multi_line_log["tracker_ids"] = list(multi_poly_log["tracker_ids"])
-
                 log(multi_poly_log, "multi_poly_log_", conf["log_save_path"])
                 log(multi_line_log, "multi_line_log_", conf["log_save_path"])
 
@@ -380,13 +375,13 @@ def video_process(conf: Dict) -> None:
 
                 multi_poly_log = defaultdict(
                     lambda: {
-                        "tracker_ids": defaultdict(set),
+                        "tracker_ids": defaultdict(list),
                         "object_count": defaultdict(int),
                     }
                 )
                 multi_line_log = defaultdict(
                     lambda: {
-                        "tracker_ids": defaultdict(set),
+                        "tracker_ids": defaultdict(list),
                         "object_count": defaultdict(int),
                     }
                 )
