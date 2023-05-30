@@ -111,8 +111,8 @@ def video_process(conf: Dict) -> None:
 
         log_info = defaultdict(
             lambda: {
-                "date": conf["date"],
-                "time": conf["time"],
+                "date": str(conf["date"]),
+                "time": str(conf["time"]),
                 "person_car": None,
                 "speed": None,
                 "car_type": None,
@@ -122,8 +122,8 @@ def video_process(conf: Dict) -> None:
 
         log_eye_info = defaultdict(
             lambda: {
-                "date": conf["date"],
-                "time": conf["time"],
+                "date": str(conf["date"]),
+                "time": str(conf["time"]),
                 "eye_detected_count": 0,
                 "eye_time_eta": None,
                 "center_eye_loc": [],
@@ -530,6 +530,8 @@ def video_indoor_process(conf: Dict) -> None:
     with VideoSink(conf["video_save_path"], video_info) as sink:
         log_info = defaultdict(
             lambda: {
+                "date": str(conf["date"]),
+                "time": str(conf["time"]),
                 "age": None,
                 "gender": None,
                 "eye_detected_count": None,
@@ -635,6 +637,8 @@ def video_indoor_process(conf: Dict) -> None:
 
                 log_info = defaultdict(
                     lambda: {
+                        "date": str(conf["date"]),
+                        "time": str(conf["time"]),
                         "age": None,
                         "gender": None,
                         "eye_detected_count": None,
